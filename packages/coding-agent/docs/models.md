@@ -1,8 +1,8 @@
-# Custom Models
+# 自定义模型
 
-Add custom providers and models (Ollama, vLLM, LM Studio, proxies) via `~/.pi/agent/models.json`.
+通过 `~/.pi/agent/models.json` 添加自定义 provider 和模型（Ollama、vLLM、LM Studio、代理等）。
 
-## Table of Contents
+## 目录
 
 - [Minimal Example](#minimal-example)
 - [Full Example](#full-example)
@@ -13,9 +13,9 @@ Add custom providers and models (Ollama, vLLM, LM Studio, proxies) via `~/.pi/ag
 - [Per-model Overrides](#per-model-overrides)
 - [OpenAI Compatibility](#openai-compatibility)
 
-## Minimal Example
+## 最小示例
 
-For local models (Ollama, LM Studio, vLLM), only `id` is required per model:
+对于本地模型（Ollama、LM Studio、vLLM），每个模型仅需要 `id`：
 
 ```json
 {
@@ -33,11 +33,11 @@ For local models (Ollama, LM Studio, vLLM), only `id` is required per model:
 }
 ```
 
-The `apiKey` is required but Ollama ignores it, so any value works.
+`apiKey` 是必需的，但 Ollama 会忽略它，因此任何值都可以。
 
-Some OpenAI-compatible servers do not understand the `developer` role used for reasoning-capable models. For those providers, set `compat.supportsDeveloperRole` to `false` so pi sends the system prompt as a `system` message instead. If the server also does not support `reasoning_effort`, set `compat.supportsReasoningEffort` to `false` too.
+一些 OpenAI 兼容服务器并不理解推理模型中的 `developer` 角色。对于这些 provider，可以把 `compat.supportsDeveloperRole` 设为 `false`，这样 pi 会把系统提示作为 `system` 消息发送。如果服务器也不支持 `reasoning_effort`，再把 `compat.supportsReasoningEffort` 设为 `false`。
 
-You can set `compat` at the provider level to apply to all models, or at the model level to override a specific model. This commonly applies to Ollama, vLLM, SGLang, and similar OpenAI-compatible servers.
+你可以在 provider 级别设置 `compat`，让它作用于所有模型；也可以在模型级别设置 `compat`，覆盖某个特定模型。这通常适用于 Ollama、vLLM、SGLang 以及类似的 OpenAI 兼容服务器。
 
 ```json
 {
@@ -61,9 +61,9 @@ You can set `compat` at the provider level to apply to all models, or at the mod
 }
 ```
 
-## Full Example
+## 完整示例
 
-Override defaults when you need specific values:
+当你需要显式覆盖默认值时，可以这样写：
 
 ```json
 {
@@ -88,56 +88,56 @@ Override defaults when you need specific values:
 }
 ```
 
-The file reloads each time you open `/model`. Edit during session; no restart needed.
+每次打开 `/model` 时，这个文件都会重新加载。你可以在会话进行中直接编辑它，无需重启。
 
-## Supported APIs
+## 支持的 API
 
-| API | Description |
+| API | 描述 |
 |-----|-------------|
-| `openai-completions` | OpenAI Chat Completions (most compatible) |
-| `openai-responses` | OpenAI Responses API |
+| `openai-completions` | OpenAI 聊天完成（最兼容） |
+| `openai-responses` | OpenAI 响应 API |
 | `anthropic-messages` | Anthropic Messages API |
-| `google-generative-ai` | Google Generative AI |
+| `google-generative-ai` | Google Generative AI API |
 
-Set `api` at provider level (default for all models) or model level (override per model).
+`api` 可以设置在 provider 级别（作为该 provider 下所有模型的默认值），也可以设置在模型级别（单独覆盖）。
 
-## Provider Configuration
+## Provider 配置
 
-| Field | Description |
+| 字段 | 描述 |
 |-------|-------------|
-| `baseUrl` | API endpoint URL |
-| `api` | API type (see above) |
-| `apiKey` | API key (see value resolution below) |
-| `headers` | Custom headers (see value resolution below) |
-| `authHeader` | Set `true` to add `Authorization: Bearer <apiKey>` automatically |
-| `models` | Array of model configurations |
-| `modelOverrides` | Per-model overrides for built-in models on this provider |
+| `baseUrl` | API 端点 URL |
+| `api` | API 类型（见上文） |
+| `apiKey` | API 密钥（请参阅下面的值解析） |
+| `headers` | 自定义标头（请参阅下面的值解析） |
+| `authHeader` | 设置`true`自动添加`Authorization: Bearer <apiKey>` |
+| `models` | 模型配置数组 |
+| `modelOverrides` | 针对该 provider 下内置模型的逐模型覆盖 |
 
-### Value Resolution
+### 值解析
 
-The `apiKey` and `headers` fields support three formats:
+`apiKey` 和 `headers` 字段支持三种格式：
 
-- **Shell command:** `"!command"` executes and uses stdout
+- **Shell 命令：** `"!command"` 执行并使用 stdout
   ```json
   "apiKey": "!security find-generic-password -ws 'anthropic'"
   "apiKey": "!op read 'op://vault/item/credential'"
   ```
-- **Environment variable:** Uses the value of the named variable
+- **环境变量：** 使用指定变量的值
   ```json
   "apiKey": "MY_API_KEY"
   ```
-- **Literal value:** Used directly
+- **字面值：** 直接使用
   ```json
   "apiKey": "sk-..."
   ```
 
-For `models.json`, shell commands are resolved at request time. pi intentionally does not apply built-in TTL, stale reuse, or recovery logic for arbitrary commands. Different commands need different caching and failure strategies, and pi cannot infer the right one.
+对于 `models.json`，shell 命令会在请求发生时动态解析。pi 有意不为任意命令提供内置 TTL、过期重用或恢复逻辑，因为不同命令需要不同的缓存与失败策略，pi 无法替你猜出正确行为。
 
-If your command is slow, expensive, rate-limited, or should keep using a previous value on transient failures, wrap it in your own script or command that implements the caching or TTL behavior you want.
+如果你的命令很慢、成本高、受速率限制，或者在临时故障时应继续使用之前的值，请自行包装成脚本或命令，并在其中实现你需要的缓存或 TTL 行为。
 
-`/model` availability checks use configured auth presence and do not execute shell commands.
+`/model` 的可用性检查只会看认证配置是否存在，不会真的执行 shell 命令。
 
-### Custom Headers
+### 自定义标头
 
 ```json
 {
@@ -156,27 +156,27 @@ If your command is slow, expensive, rate-limited, or should keep using a previou
 }
 ```
 
-## Model Configuration
+## 模型配置
 
-| Field | Required | Default | Description |
+| 字段 | 必填 | 默认值 | 描述 |
 |-------|----------|---------|-------------|
-| `id` | Yes | — | Model identifier (passed to the API) |
-| `name` | No | `id` | Human-readable model label. Used for matching (`--model` patterns) and shown in model details/status text. |
-| `api` | No | provider's `api` | Override provider's API for this model |
-| `reasoning` | No | `false` | Supports extended thinking |
-| `input` | No | `["text"]` | Input types: `["text"]` or `["text", "image"]` |
-| `contextWindow` | No | `128000` | Context window size in tokens |
-| `maxTokens` | No | `16384` | Maximum output tokens |
-| `cost` | No | all zeros | `{"input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0}` (per million tokens) |
-| `compat` | No | provider `compat` | OpenAI compatibility overrides. Merged with provider-level `compat` when both are set. |
+| `id` | 是 | - | 模型标识符（传给 API 的 ID） |
+| `name` | 否 | `id` | 人类可读的模型标签，用于匹配（`--model` 模式）并显示在模型详情/状态文本中 |
+| `api` | 否 | provider 的 `api` | 覆盖该模型使用的 provider API |
+| `reasoning` | 否 | `false` | 是否支持扩展思考 |
+| `input` | 否 | `["text"]` | 输入类型：`["text"]` 或 `["text", "image"]` |
+| `contextWindow` | 否 | `128000` | 上下文窗口大小（按 token 计） |
+| `maxTokens` | 否 | `16384` | 最大输出 token 数 |
+| `cost` | 否 | 全为零 | `{"input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0}`（每百万 token） |
+| `compat` | 否 | provider 的 `compat` | OpenAI 兼容性覆盖；当两者都设置时，会与 provider 级别 `compat` 合并 |
 
-Current behavior:
-- `/model` and `--list-models` list entries by model `id`.
-- The configured `name` is used for model matching and detail/status text.
+当前行为：
+- `/model` 和 `--list-models` 会按模型 `id` 列出条目。
+- 配置的 `name` 用于模型匹配和详细信息/状态文本。
 
-## Overriding Built-in Providers
+## 覆盖内置 Providers
 
-Route a built-in provider through a proxy without redefining models:
+如果你想把内置 provider 路由到代理，而不重新定义模型，可以这样写：
 
 ```json
 {
@@ -188,9 +188,9 @@ Route a built-in provider through a proxy without redefining models:
 }
 ```
 
-All built-in Anthropic models remain available. Existing OAuth or API key auth continues to work.
+所有内置 Anthropic 模型仍然可用，现有的 OAuth 或 API key 认证也会继续生效。
 
-To merge custom models into a built-in provider, include the `models` array:
+如果想把自定义模型合并进内置 provider，请提供 `models` 数组：
 
 ```json
 {
@@ -205,15 +205,15 @@ To merge custom models into a built-in provider, include the `models` array:
 }
 ```
 
-Merge semantics:
-- Built-in models are kept.
-- Custom models are upserted by `id` within the provider.
-- If a custom model `id` matches a built-in model `id`, the custom model replaces that built-in model.
-- If a custom model `id` is new, it is added alongside built-in models.
+合并语义：
+- 保留内置模型。
+- 自定义模型会按 provider 内的 `id` 进行更新
+- 如果自定义模型 `id` 与内置模型 `id` 匹配，则自定义模型将替换该内置模型。
+- 如果自定义模型 `id` 是新的，它将与内置模型一起添加。
 
-## Per-model Overrides
+## 逐模型覆盖
 
-Use `modelOverrides` to customize specific built-in models without replacing the provider's full model list.
+使用 `modelOverrides` 可以覆盖特定的内置模型，而不必替换整个 provider 的模型列表。
 
 ```json
 {
@@ -234,20 +234,20 @@ Use `modelOverrides` to customize specific built-in models without replacing the
 }
 ```
 
-`modelOverrides` supports these fields per model: `name`, `reasoning`, `input`, `cost` (partial), `contextWindow`, `maxTokens`, `headers`, `compat`.
+`modelOverrides` 支持每个模型的以下字段：`name`、`reasoning`、`input`、`cost`（部分）、`contextWindow`、`maxTokens`、`headers`、`compat`。
 
-Behavior notes:
-- `modelOverrides` are applied to built-in provider models.
-- Unknown model IDs are ignored.
-- You can combine provider-level `baseUrl`/`headers` with `modelOverrides`.
-- If `models` is also defined for a provider, custom models are merged after built-in overrides. A custom model with the same `id` replaces the overridden built-in model entry.
+行为注意事项：
+- `modelOverrides` 只作用于内置 provider 模型
+- 未知的模型 ID 会被忽略
+- 你可以把 provider 级别的 `baseUrl` / `headers` 与 `modelOverrides` 组合使用
+- 如果同时在该 provider 下定义了 `models`，则自定义模型会在内置覆盖之后再合并；同 `id` 的自定义模型会替换已覆盖的内置模型条目
 
-## OpenAI Compatibility
+## OpenAI 兼容性
 
-For providers with partial OpenAI compatibility, use the `compat` field.
+对于只实现了部分 OpenAI 兼容能力的 provider，请使用 `compat` 字段。
 
-- Provider-level `compat` applies defaults to all models under that provider.
-- Model-level `compat` overrides provider-level values for that model.
+- provider 级别的 `compat` 会作为该 provider 下所有模型的默认值
+- 模型级别的 `compat` 会覆盖该模型对应的 provider 级别值
 
 ```json
 {
@@ -265,25 +265,25 @@ For providers with partial OpenAI compatibility, use the `compat` field.
 }
 ```
 
-| Field | Description |
+| 字段 | 描述 |
 |-------|-------------|
-| `supportsStore` | Provider supports `store` field |
-| `supportsDeveloperRole` | Use `developer` vs `system` role |
-| `supportsReasoningEffort` | Support for `reasoning_effort` parameter |
-| `reasoningEffortMap` | Map pi thinking levels to provider-specific `reasoning_effort` values |
-| `supportsUsageInStreaming` | Supports `stream_options: { include_usage: true }` (default: `true`) |
-| `maxTokensField` | Use `max_completion_tokens` or `max_tokens` |
-| `requiresToolResultName` | Include `name` on tool result messages |
-| `requiresAssistantAfterToolResult` | Insert an assistant message before a user message after tool results |
-| `requiresThinkingAsText` | Convert thinking blocks to plain text |
-| `thinkingFormat` | Use `reasoning_effort`, `zai`, `qwen`, or `qwen-chat-template` thinking parameters |
-| `supportsStrictMode` | Include the `strict` field in tool definitions |
-| `openRouterRouting` | OpenRouter routing config passed to OpenRouter for model/provider selection |
-| `vercelGatewayRouting` | Vercel AI Gateway routing config for provider selection (`only`, `order`) |
+| `supportsStore` | provider 是否支持 `store` 字段 |
+| `supportsDeveloperRole` | 使用 `developer` 与 `system` 角色 |
+| `supportsReasoningEffort` | 支持 `reasoning_effort` 参数 |
+| `reasoningEffortMap` | 将 pi 的思考级别映射到 provider 特有的 `reasoning_effort` 值 |
+| `supportsUsageInStreaming` | 支持`stream_options: { include_usage: true }`（默认：`true`） |
+| `maxTokensField` | 使用 `max_completion_tokens` 或 `max_tokens` |
+| `requiresToolResultName` | 在工具结果消息中包含 `name` |
+| `requiresAssistantAfterToolResult` | 在工具结果之后的用户消息之前插入辅助消息 |
+| `requiresThinkingAsText` | 将思维块转换为纯文本 |
+| `thinkingFormat` | 使用 `reasoning_effort`、`zai`、`qwen` 或 `qwen-chat-template` 思维参数 |
+| `supportsStrictMode` | 在工具定义中包含 `strict` 字段 |
+| `openRouterRouting` | 透传给 OpenRouter 的路由配置，用于模型/provider 选择 |
+| `vercelGatewayRouting` | 用于 provider 选择的 Vercel AI Gateway 路由配置（`only`、`order`） |
 
-`qwen` uses top-level `enable_thinking`. Use `qwen-chat-template` for local Qwen-compatible servers that require `chat_template_kwargs.enable_thinking`.
+`qwen` 使用顶级 `enable_thinking`。对于需要 `chat_template_kwargs.enable_thinking` 的本地 Qwen 兼容服务器，请使用 `qwen-chat-template`。
 
-Example:
+示例：
 
 ```json
 {
@@ -309,7 +309,7 @@ Example:
 }
 ```
 
-Vercel AI Gateway example:
+Vercel AI 网关示例：
 
 ```json
 {

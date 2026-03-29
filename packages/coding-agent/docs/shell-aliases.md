@@ -1,8 +1,8 @@
-# Shell Aliases
+# 外壳别名
 
-Pi runs bash in non-interactive mode (`bash -c`), which doesn't expand aliases by default.
+Pi 以非交互模式 (`bash -c`) 运行 bash，默认情况下不会扩展别名。
 
-To enable your shell aliases, add to `~/.pi/agent/settings.json`:
+要启用 shell 别名，请添加到 `~/.pi/agent/settings.json`：
 
 ```json
 {
@@ -10,4 +10,4 @@ To enable your shell aliases, add to `~/.pi/agent/settings.json`:
 }
 ```
 
-Adjust the path (`~/.zshrc`, `~/.bashrc`, etc.) to match your shell config.
+调整路径（`~/.zshrc`、`~/.bashrc` 等）以匹配您的 shell 配置。

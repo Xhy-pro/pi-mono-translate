@@ -1,21 +1,21 @@
-# Custom Providers
+# 自定义提供商
 
-Extensions can register custom model providers via `pi.registerProvider()`. This enables:
+扩展可以通过 `pi.registerProvider()` 注册自定义模型提供程序。这使得：
 
-- **Proxies** - Route requests through corporate proxies or API gateways
-- **Custom endpoints** - Use self-hosted or private model deployments
-- **OAuth/SSO** - Add authentication flows for enterprise providers
-- **Custom APIs** - Implement streaming for non-standard LLM APIs
+- **代理** - 通过公司代理或 API 网关路由请求
+- **自定义端点** - 使用自托管或私有模型部署
+- **OAuth/SSO** - 为企业提供商添加身份验证流程
+- **自定义 API** - 实现非标准 LLM API 的流式传输
 
-## Example Extensions
+## 扩展示例
 
-See these complete provider examples:
+请参阅这些完整的提供商示例：
 
 - [`examples/extensions/custom-provider-anthropic/`](../examples/extensions/custom-provider-anthropic/)
 - [`examples/extensions/custom-provider-gitlab-duo/`](../examples/extensions/custom-provider-gitlab-duo/)
 - [`examples/extensions/custom-provider-qwen-cli/`](../examples/extensions/custom-provider-qwen-cli/)
 
-## Table of Contents
+＃＃ 目录
 
 - [Example Extensions](#example-extensions)
 - [Quick Reference](#quick-reference)
@@ -28,7 +28,7 @@ See these complete provider examples:
 - [Config Reference](#config-reference)
 - [Model Definition Reference](#model-definition-reference)
 
-## Quick Reference
+## 快速参考
 
 ```typescript
 import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
@@ -59,9 +59,9 @@ export default function (pi: ExtensionAPI) {
 }
 ```
 
-## Override Existing Provider
+## 覆盖现有的提供者
 
-The simplest use case: redirect an existing provider through a proxy.
+最简单的用例：通过代理重定向现有提供者。
 
 ```typescript
 // All Anthropic requests now go through your proxy
@@ -85,11 +85,11 @@ pi.registerProvider("google", {
 });
 ```
 
-When only `baseUrl` and/or `headers` are provided (no `models`), all existing models for that provider are preserved with the new endpoint.
+当仅提供 `baseUrl` 和/或 `headers`（无 `models`）时，该提供程序的所有现有模型都将与新端点一起保留。
 
-## Register New Provider
+## 注册新提供商
 
-To add a completely new provider, specify `models` along with the required configuration.
+要添加全新的提供程序，请指定 `models` 以及所需的配置。
 
 ```typescript
 pi.registerProvider("my-llm", {
@@ -115,11 +115,11 @@ pi.registerProvider("my-llm", {
 });
 ```
 
-When `models` is provided, it **replaces** all existing models for that provider.
+当提供 `models` 时，它会**替换**该提供商的所有现有模型。
 
-## Unregister Provider
+## 取消注册提供商
 
-Use `pi.unregisterProvider(name)` to remove a provider that was previously registered via `pi.registerProvider(name, ...)`:
+使用 `pi.unregisterProvider(name)` 删除之前通过 `pi.registerProvider(name, ...)` 注册的提供程序：
 
 ```typescript
 // Register
@@ -144,28 +144,28 @@ pi.registerProvider("my-llm", {
 pi.unregisterProvider("my-llm");
 ```
 
-Unregistering removes that provider's dynamic models, API key fallback, OAuth provider registration, and custom stream handler registrations. Any built-in models or provider behavior that were overridden are restored.
+取消注册会删除该提供程序的动态模型、API 密钥回退、OAuth 提供程序注册和自定义流处理程序注册。任何被覆盖的内置模型或提供者行为都会被恢复。
 
-Calls made after the initial extension load phase are applied immediately, so no `/reload` is required.
+初始扩展加载阶段之后进行的调用会立即应用，因此不需要 `/reload` 。
 
-### API Types
+### API 类型
 
-The `api` field determines which streaming implementation is used:
+`api` 字段决定使用哪种流实现：
 
-| API | Use for |
+| 应用程序编程接口 | 用于 |
 |-----|---------|
-| `anthropic-messages` | Anthropic Claude API and compatibles |
-| `openai-completions` | OpenAI Chat Completions API and compatibles |
-| `openai-responses` | OpenAI Responses API |
-| `azure-openai-responses` | Azure OpenAI Responses API |
-| `openai-codex-responses` | OpenAI Codex Responses API |
-| `mistral-conversations` | Mistral SDK Conversations/Chat streaming |
-| `google-generative-ai` | Google Generative AI API |
-| `google-gemini-cli` | Google Cloud Code Assist API |
-| `google-vertex` | Google Vertex AI API |
-| `bedrock-converse-stream` | Amazon Bedrock Converse API |
+| `anthropic-messages` | Anthropic Claude API 及其兼容版本 |
+| `openai-completions` | OpenAI 聊天完成 API 和兼容版本 |
+| `openai-responses` | OpenAI 响应 API |
+| `azure-openai-responses` | Azure OpenAI 响应 API |
+| `openai-codex-responses` | OpenAI Codex 响应 API |
+| `mistral-conversations` | Mistral SDK 对话/聊天流 |
+| `google-generative-ai` | 谷歌生成式人工智能API |
+| `google-gemini-cli` | 谷歌云代码辅助API |
+| `google-vertex` | 谷歌 Vertex 人工智能 API |
+| `bedrock-converse-stream` | 亚马逊 Bedrock 匡威 API |
 
-Most OpenAI-compatible providers work with `openai-completions`. Use `compat` for quirks:
+大多数与 OpenAI 兼容的提供商都使用 `openai-completions`。使用 `compat` 来处理怪癖：
 
 ```typescript
 models: [{
@@ -188,15 +188,15 @@ models: [{
   }]
 ```
 
-Use `qwen-chat-template` instead for local Qwen-compatible servers that read `chat_template_kwargs.enable_thinking`.
+对于读取 `chat_template_kwargs.enable_thinking` 的本地 Qwen 兼容服务器，请使用 `qwen-chat-template`。
 
-> Migration note: Mistral moved from `openai-completions` to `mistral-conversations`.
-> Use `mistral-conversations` for native Mistral models.
-> If you intentionally route Mistral-compatible/custom endpoints through `openai-completions`, set `compat` flags explicitly as needed.
+> 迁移说明：米斯特拉尔从 `openai-completions` 迁移到 `mistral-conversations`。
+> 对本机 Mistral 模型使用 `mistral-conversations`。
+> 如果您有意通过 `openai-completions` 路由 Mistral 兼容/自定义端点，请根据需要显式设置 `compat` 标志。
 
-### Auth Header
+### 身份验证标头
 
-If your provider expects `Authorization: Bearer <key>` but doesn't use a standard API, set `authHeader: true`:
+如果您的提供商需要 `Authorization: Bearer <key>` 但不使用标准 API，请设置 `authHeader: true`：
 
 ```typescript
 pi.registerProvider("custom-api", {
@@ -208,9 +208,9 @@ pi.registerProvider("custom-api", {
 });
 ```
 
-## OAuth Support
+## OAuth 支持
 
-Add OAuth/SSO authentication that integrates with `/login`:
+添加与 `/login` 集成的 OAuth/SSO 身份验证：
 
 ```typescript
 import type { OAuthCredentials, OAuthLoginCallbacks } from "@mariozechner/pi-ai";
@@ -270,11 +270,11 @@ pi.registerProvider("corporate-ai", {
 });
 ```
 
-After registration, users can authenticate via `/login corporate-ai`.
+注册后，用户可以通过`/login corporate-ai`进行身份验证。
 
 ### OAuthLoginCallbacks
 
-The `callbacks` object provides three ways to authenticate:
+`callbacks` 对象提供了三种身份验证方法：
 
 ```typescript
 interface OAuthLoginCallbacks {
@@ -291,7 +291,7 @@ interface OAuthLoginCallbacks {
 
 ### OAuthCredentials
 
-Credentials are persisted in `~/.pi/agent/auth.json`:
+凭证保存在 `~/.pi/agent/auth.json` 中：
 
 ```typescript
 interface OAuthCredentials {
@@ -301,21 +301,21 @@ interface OAuthCredentials {
 }
 ```
 
-## Custom Streaming API
+## 自定义流媒体 API
 
-For providers with non-standard APIs, implement `streamSimple`. Study the existing provider implementations before writing your own:
+对于具有非标准 API 的提供商，请实施 `streamSimple`。在编写自己的提供程序之前，请先研究现有的提供程序实现：
 
-**Reference implementations:**
-- [anthropic.ts](https://github.com/badlogic/pi-mono/blob/main/packages/ai/src/providers/anthropic.ts) - Anthropic Messages API
-- [mistral.ts](https://github.com/badlogic/pi-mono/blob/main/packages/ai/src/providers/mistral.ts) - Mistral Conversations API
-- [openai-completions.ts](https://github.com/badlogic/pi-mono/blob/main/packages/ai/src/providers/openai-completions.ts) - OpenAI Chat Completions
-- [openai-responses.ts](https://github.com/badlogic/pi-mono/blob/main/packages/ai/src/providers/openai-responses.ts) - OpenAI Responses API
-- [google.ts](https://github.com/badlogic/pi-mono/blob/main/packages/ai/src/providers/google.ts) - Google Generative AI
-- [amazon-bedrock.ts](https://github.com/badlogic/pi-mono/blob/main/packages/ai/src/providers/amazon-bedrock.ts) - AWS Bedrock
+**参考实现：**
+- [anthropic.ts](https://github.com/badlogic/pi-mono/blob/main/packages/ai/src/providers/anthropic.ts) - 人类消息 API
+- [mistral.ts](https://github.com/badlogic/pi-mono/blob/main/packages/ai/src/providers/mistral.ts) - 米斯特拉尔对话 API
+- [openai-completions.ts](https://github.com/badlogic/pi-mono/blob/main/packages/ai/src/providers/openai-completions.ts) - OpenAI 聊天完成
+- [openai-responses.ts](https://github.com/badlogic/pi-mono/blob/main/packages/ai/src/providers/openai-responses.ts) - OpenAI 响应 API
+- [google.ts](https://github.com/badlogic/pi-mono/blob/main/packages/ai/src/providers/google.ts) - 谷歌生成人工智能
+- [amazon-bedrock.ts](https://github.com/badlogic/pi-mono/blob/main/packages/ai/src/providers/amazon-bedrock.ts) - AWS 基岩
 
-### Stream Pattern
+### 流模式
 
-All providers follow the same pattern:
+所有提供商都遵循相同的模式：
 
 ```typescript
 import {
@@ -381,30 +381,30 @@ function streamMyProvider(
 }
 ```
 
-### Event Types
+### 事件类型
 
-Push events via `stream.push()` in this order:
+按以下顺序通过 `stream.push()` 推送事件：
 
-1. `{ type: "start", partial: output }` - Stream started
+1. `{ type: "start", partial: output }` - 流开始
 
-2. Content events (repeatable, track `contentIndex` for each block):
-   - `{ type: "text_start", contentIndex, partial }` - Text block started
-   - `{ type: "text_delta", contentIndex, delta, partial }` - Text chunk
-   - `{ type: "text_end", contentIndex, content, partial }` - Text block ended
-   - `{ type: "thinking_start", contentIndex, partial }` - Thinking started
-   - `{ type: "thinking_delta", contentIndex, delta, partial }` - Thinking chunk
-   - `{ type: "thinking_end", contentIndex, content, partial }` - Thinking ended
-   - `{ type: "toolcall_start", contentIndex, partial }` - Tool call started
-   - `{ type: "toolcall_delta", contentIndex, delta, partial }` - Tool call JSON chunk
-   - `{ type: "toolcall_end", contentIndex, toolCall, partial }` - Tool call ended
+2.内容事件（可重复，每个块跟踪`contentIndex`）：
+   - `{ type: "text_start", contentIndex, partial }` - 文本块开始
+   - `{ type: "text_delta", contentIndex, delta, partial }` - 文本块
+   - `{ type: "text_end", contentIndex, content, partial }` - 文本块结束
+   - `{ type: "thinking_start", contentIndex, partial }` - 思考开始
+   - `{ type: "thinking_delta", contentIndex, delta, partial }` - 思考块
+   - `{ type: "thinking_end", contentIndex, content, partial }` - 思考结束
+   - `{ type: "toolcall_start", contentIndex, partial }` - 工具调用开始
+   - `{ type: "toolcall_delta", contentIndex, delta, partial }` - 工具调用 JSON 块
+   - `{ type: "toolcall_end", contentIndex, toolCall, partial }` - 工具调用结束
 
-3. `{ type: "done", reason, message }` or `{ type: "error", reason, error }` - Stream ended
+3. `{ type: "done", reason, message }` 或 `{ type: "error", reason, error }` - 流结束
 
-The `partial` field in each event contains the current `AssistantMessage` state. Update `output.content` as you receive data, then include `output` as the `partial`.
+每个事件中的 `partial` 字段包含当前 `AssistantMessage` 状态。收到数据时更新 `output.content`，然后将 `output` 包含为 `partial`。
 
-### Content Blocks
+### 内容块
 
-Add content blocks to `output.content` as they arrive:
+当内容块到达时将其添加到 `output.content` 中：
 
 ```typescript
 // Text block
@@ -422,9 +422,9 @@ if (block.type === "text") {
 stream.push({ type: "text_end", contentIndex, content: block.text, partial: output });
 ```
 
-### Tool Calls
+### 工具调用
 
-Tool calls require accumulating JSON and parsing:
+工具调用需要积累JSON并解析：
 
 ```typescript
 // Start tool call
@@ -453,9 +453,9 @@ stream.push({
 });
 ```
 
-### Usage and Cost
+### 使用和成本
 
-Update usage from API response and calculate cost:
+从 API 响应更新使用情况并计算成本：
 
 ```typescript
 output.usage.input = response.usage.input_tokens;
@@ -467,9 +467,9 @@ output.usage.totalTokens = output.usage.input + output.usage.output +
 calculateCost(model, output.usage);
 ```
 
-### Registration
+＃＃＃ 登记
 
-Register your stream function:
+注册您的流函数：
 
 ```typescript
 pi.registerProvider("my-provider", {
@@ -481,27 +481,27 @@ pi.registerProvider("my-provider", {
 });
 ```
 
-## Testing Your Implementation
+## 测试您的实施
 
-Test your provider against the same test suites used by built-in providers. Copy and adapt these test files from [packages/ai/test/](https://github.com/badlogic/pi-mono/tree/main/packages/ai/test):
+根据内置提供程序使用的相同测试套件来测试您的提供程序。从 [packages/ai/test/](https://github.com/badlogic/pi-mono/tree/main/packages/ai/test) 复制并调整这些测试文件：
 
-| Test | Purpose |
+| 测试 | 目的 |
 |------|---------|
-| `stream.test.ts` | Basic streaming, text output |
-| `tokens.test.ts` | Token counting and usage |
-| `abort.test.ts` | AbortSignal handling |
-| `empty.test.ts` | Empty/minimal responses |
-| `context-overflow.test.ts` | Context window limits |
-| `image-limits.test.ts` | Image input handling |
-| `unicode-surrogate.test.ts` | Unicode edge cases |
-| `tool-call-without-result.test.ts` | Tool call edge cases |
-| `image-tool-result.test.ts` | Images in tool results |
-| `total-tokens.test.ts` | Total token calculation |
-| `cross-provider-handoff.test.ts` | Context handoff between providers |
+| `stream.test.ts` | 基本流式传输、文本输出 |
+| `tokens.test.ts` | 令牌计数和使用 |
+| `abort.test.ts` | Abort信号处理 |
+| `empty.test.ts` | 空/最少回复 |
+| `context-overflow.test.ts` | 上下文窗口限制 |
+| `image-limits.test.ts` | 图像输入处理 |
+| `unicode-surrogate.test.ts` | Unicode 边缘情况 |
+| `tool-call-without-result.test.ts` | 工具调用边缘情况 |
+| `image-tool-result.test.ts` | 工具结果中的图像 |
+| `total-tokens.test.ts` | 总代币计算 |
+| `cross-provider-handoff.test.ts` | 提供者之间的上下文切换 |
 
-Run tests with your provider/model pairs to verify compatibility.
+使用您的提供商/模型对运行测试以验证兼容性。
 
-## Config Reference
+## 配置参考
 
 ```typescript
 interface ProviderConfig {
@@ -541,7 +541,7 @@ interface ProviderConfig {
 }
 ```
 
-## Model Definition Reference
+## 模型定义参考
 
 ```typescript
 interface ProviderModelConfig {
@@ -593,4 +593,4 @@ interface ProviderModelConfig {
 }
 ```
 
-`qwen` is for DashScope-style top-level `enable_thinking`. Use `qwen-chat-template` for local Qwen-compatible servers that read `chat_template_kwargs.enable_thinking`.
+`qwen` 用于 DashScope 样式的顶级 `enable_thinking`。将 `qwen-chat-template` 用于读取 `chat_template_kwargs.enable_thinking` 的本地 Qwen 兼容服务器。

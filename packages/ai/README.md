@@ -1,83 +1,83 @@
 # @mariozechner/pi-ai
 
-Unified LLM API with automatic model discovery, provider configuration, token and cost tracking, and simple context persistence and hand-off to other models mid-session.
+一个统一的 LLM API，提供自动模型发现、provider 配置、token 与成本统计、上下文持久化，以及跨模型会话交接等能力。
 
-**Note**: This library only includes models that support tool calling (function calling), as this is essential for agentic workflows.
+**注意：** 这个库只收录支持工具调用（函数调用）的模型，因为这是 agent 工作流的核心能力。
 
-## Table of Contents
+## 目录
 
-- [Supported Providers](#supported-providers)
-- [Installation](#installation)
-- [Quick Start](#quick-start)
-- [Tools](#tools)
-  - [Defining Tools](#defining-tools)
-  - [Handling Tool Calls](#handling-tool-calls)
-  - [Streaming Tool Calls with Partial JSON](#streaming-tool-calls-with-partial-json)
-  - [Validating Tool Arguments](#validating-tool-arguments)
-  - [Complete Event Reference](#complete-event-reference)
-- [Image Input](#image-input)
-- [Thinking/Reasoning](#thinkingreasoning)
-  - [Unified Interface](#unified-interface-streamsimplecompletesimple)
-  - [Provider-Specific Options](#provider-specific-options-streamcomplete)
-  - [Streaming Thinking Content](#streaming-thinking-content)
-- [Stop Reasons](#stop-reasons)
-- [Error Handling](#error-handling)
-  - [Aborting Requests](#aborting-requests)
-  - [Continuing After Abort](#continuing-after-abort)
-- [APIs, Models, and Providers](#apis-models-and-providers)
-  - [Providers and Models](#providers-and-models)
-  - [Querying Providers and Models](#querying-providers-and-models)
-  - [Custom Models](#custom-models)
-  - [OpenAI Compatibility Settings](#openai-compatibility-settings)
-  - [Type Safety](#type-safety)
-- [Cross-Provider Handoffs](#cross-provider-handoffs)
-- [Context Serialization](#context-serialization)
-- [Browser Usage](#browser-usage)
-  - [Browser Compatibility Notes](#browser-compatibility-notes)
-  - [Environment Variables](#environment-variables-nodejs-only)
-  - [Checking Environment Variables](#checking-environment-variables)
-- [OAuth Providers](#oauth-providers)
-  - [Vertex AI](#vertex-ai)
-  - [CLI Login](#cli-login)
-  - [Programmatic OAuth](#programmatic-oauth)
-  - [Login Flow Example](#login-flow-example)
-  - [Using OAuth Tokens](#using-oauth-tokens)
-  - [Provider Notes](#provider-notes)
+- [支持的 provider](#支持的提供商)
+- [安装](#安装)
+- [快速入门](#快速入门)
+- [工具](#工具)
+  - [定义工具](#定义工具)
+  - [处理工具调用](#处理工具调用)
+  - [使用部分 JSON 流式处理工具调用](#使用部分-json-进行流媒体工具调用)
+  - [验证工具参数](#验证工具参数)
+  - [完整事件参考](#完整事件参考)
+- [图像输入](#图像输入)
+- [思考/推理](#思考推理)
+  - [统一接口](#统一接口streamsimplecompletesimple)
+  - [provider 专属选项](#提供商特定选项流完整)
+  - [流式思考内容](#流式思维内容)
+- [停止原因](#停止原因)
+- [错误处理](#错误处理)
+  - [中止请求](#中止请求)
+  - [中止后继续](#中止后继续)
+- [API、模型与 provider](#api模型和提供者)
+  - [provider 与模型](#提供商和模型)
+  - [查询 provider 与模型](#查询提供者和模型)
+  - [自定义模型](#定制模型)
+  - [OpenAI 兼容性设置](#openai-兼容性设置)
+  - [类型安全](#类型安全)
+- [跨 provider 交接](#跨提供商交接)
+- [上下文序列化](#上下文序列化)
+- [浏览器使用](#浏览器使用)
+  - [浏览器兼容性说明](#浏览器兼容性说明)
+  - [环境变量](#环境变量仅限-nodejs)
+  - [检查环境变量](#检查环境变量)
+- [OAuth provider](#oauth-提供商)
+  - [Vertex AI](#顶点人工智能)
+  - [CLI 登录](#cli-登录)
+  - [程序化 OAuth](#程序化-oauth)
+  - [登录流程示例](#登录流程示例)
+  - [使用 OAuth 令牌](#使用-oauth-令牌)
+  - [provider 说明](#提供者注释)
 - [License](#license)
 
-## Supported Providers
+## 支持的提供商
 
 - **OpenAI**
-- **Azure OpenAI (Responses)**
-- **OpenAI Codex** (ChatGPT Plus/Pro subscription, requires OAuth, see below)
+- **Azure OpenAI（Responses）**
+- **OpenAI Codex**（ChatGPT Plus/Pro 订阅，需要 OAuth，见下文）
 - **Anthropic**
 - **Google**
-- **Vertex AI** (Gemini via Vertex AI)
+- **Vertex AI**（Gemini 通过 Vertex AI）
 - **Mistral**
 - **Groq**
 - **Cerebras**
 - **xAI**
 - **OpenRouter**
-- **Vercel AI Gateway**
+- **Vercel AI 网关**
 - **MiniMax**
-- **GitHub Copilot** (requires OAuth, see below)
-- **Google Gemini CLI** (requires OAuth, see below)
-- **Antigravity** (requires OAuth, see below)
+- **GitHub Copilot**（需要 OAuth，见下文）
+- **Google Gemini CLI**（需要 OAuth，见下文）
+- **Google Antigravity**（需要 OAuth，见下文）
 - **Amazon Bedrock**
 - **OpenCode Zen**
 - **OpenCode Go**
-- **Kimi For Coding** (Moonshot AI, uses Anthropic-compatible API)
-- **Any OpenAI-compatible API**: Ollama, vLLM, LM Studio, etc.
+- **Kimi for Coding**（Moonshot AI，使用与 Anthropic 兼容的 API）
+- **任何 OpenAI 兼容的 API**：Ollama、vLLM、LM Studio 等。
 
-## Installation
+## 安装
 
 ```bash
 npm install @mariozechner/pi-ai
 ```
 
-TypeBox exports are re-exported from `@mariozechner/pi-ai`: `Type`, `Static`, and `TSchema`.
+`@mariozechner/pi-ai` 也重新导出了 TypeBox 的 `Type`、`Static` 和 `TSchema`。
 
-## Quick Start
+## 快速入门
 
 ```typescript
 import { Type, getModel, stream, complete, Context, Tool, StringEnum } from '@mariozechner/pi-ai';
@@ -199,11 +199,11 @@ for (const block of response.content) {
 }
 ```
 
-## Tools
+## 工具
 
-Tools enable LLMs to interact with external systems. This library uses TypeBox schemas for type-safe tool definitions with automatic validation using AJV. TypeBox schemas can be serialized and deserialized as plain JSON, making them ideal for distributed systems.
+工具让 LLM 可以与外部系统交互。这个库使用 TypeBox schema 定义类型安全的工具，并通过 AJV 自动完成参数验证。TypeBox schema 可以序列化和反序列化为纯 JSON，因此也很适合分布式系统。
 
-### Defining Tools
+### 定义工具
 
 ```typescript
 import { Type, Tool, StringEnum } from '@mariozechner/pi-ai';
@@ -233,9 +233,9 @@ const bookMeetingTool: Tool = {
 };
 ```
 
-### Handling Tool Calls
+### 处理工具调用
 
-Tool results use content blocks and can include both text and images:
+工具结果使用内容块，可以包含文本和图像：
 
 ```typescript
 import { readFileSync } from 'fs';
@@ -281,9 +281,9 @@ context.messages.push({
 });
 ```
 
-### Streaming Tool Calls with Partial JSON
+### 使用部分 JSON 流式处理工具调用
 
-During streaming, tool call arguments are progressively parsed as they arrive. This enables real-time UI updates before the complete arguments are available:
+在流式传输期间，工具调用参数会随着输出逐步解析出来。这让你可以在完整参数尚未生成前，就先做实时 UI 更新：
 
 ```typescript
 const s = stream(model, context);
@@ -316,20 +316,20 @@ for await (const event of s) {
 }
 ```
 
-**Important notes about partial tool arguments:**
-- During `toolcall_delta` events, `arguments` contains the best-effort parse of partial JSON
-- Fields may be missing or incomplete - always check for existence before use
-- String values may be truncated mid-word
-- Arrays may be incomplete
-- Nested objects may be partially populated
-- At minimum, `arguments` will be an empty object `{}`, never `undefined`
-- The Google provider does not support function call streaming. Instead, you will receive a single `toolcall_delta` event with the full arguments.
+**有关部分工具参数的重要说明：**
+- 在 `toolcall_delta` 事件期间，`arguments` 包含部分 JSON 的尽力解析
+- 字段可能丢失或不完整 - 使用前务必检查是否存在
+- 字符串值可能会在字中被截断
+- 数组可能不完整
+- 嵌套对象可能被部分填充
+- 至少，`arguments` 将是一个空对象 `{}`，而不是 `undefined`
+- Google provider 不支持函数调用流。相应地，你会收到一个带有完整参数的 `toolcall_delta` 事件。
 
-### Validating Tool Arguments
+### 验证工具参数
 
-When using `agentLoop`, tool arguments are automatically validated against your TypeBox schemas before execution. If validation fails, the error is returned to the model as a tool result, allowing it to retry.
+使用 `agentLoop` 时，工具参数会在执行前根据你的 TypeBox schema 自动验证。如果验证失败，错误会作为工具结果返回给模型，让它有机会重试。
 
-When implementing your own tool execution loop with `stream()` or `complete()`, use `validateToolCall` to validate arguments before passing them to your tools:
+如果你使用 `stream()` 或 `complete()` 自己实现工具执行循环，请在把参数传给工具之前，先用 `validateToolCall` 完成校验：
 
 ```typescript
 import { stream, validateToolCall, Tool } from '@mariozechner/pi-ai';
@@ -361,28 +361,28 @@ for await (const event of s) {
 }
 ```
 
-### Complete Event Reference
+### 完整事件参考
 
-All streaming events emitted during assistant message generation:
+下面是助手消息生成期间可能发出的所有流事件：
 
-| Event Type | Description | Key Properties |
+| 事件类型 | 描述 | 主要特性 |
 |------------|-------------|----------------|
-| `start` | Stream begins | `partial`: Initial assistant message structure |
-| `text_start` | Text block starts | `contentIndex`: Position in content array |
-| `text_delta` | Text chunk received | `delta`: New text, `contentIndex`: Position |
-| `text_end` | Text block complete | `content`: Full text, `contentIndex`: Position |
-| `thinking_start` | Thinking block starts | `contentIndex`: Position in content array |
-| `thinking_delta` | Thinking chunk received | `delta`: New text, `contentIndex`: Position |
-| `thinking_end` | Thinking block complete | `content`: Full thinking, `contentIndex`: Position |
-| `toolcall_start` | Tool call begins | `contentIndex`: Position in content array |
-| `toolcall_delta` | Tool arguments streaming | `delta`: JSON chunk, `partial.content[contentIndex].arguments`: Partial parsed args |
-| `toolcall_end` | Tool call complete | `toolCall`: Complete validated tool call with `id`, `name`, `arguments` |
-| `done` | Stream complete | `reason`: Stop reason ("stop", "length", "toolUse"), `message`: Final assistant message |
-| `error` | Error occurred | `reason`: Error type ("error" or "aborted"), `error`: AssistantMessage with partial content |
+| `start` | 流开始 | `partial`：初始助手消息结构 |
+| `text_start` | 文本块开始 | `contentIndex`：内容数组中的位置 |
+| `text_delta` | 文本块增量到达 | `delta`：新增文本，`contentIndex`：位置 |
+| `text_end` | 文本块完成 | `content`：完整文本，`contentIndex`：位置 |
+| `thinking_start` | 思考块开始 | `contentIndex`：内容数组中的位置 |
+| `thinking_delta` | 思考块增量到达 | `delta`：新增文本，`contentIndex`：位置 |
+| `thinking_end` | 思考块完成 | `content`：完整思考内容，`contentIndex`：位置 |
+| `toolcall_start` | 工具调用开始 | `contentIndex`：内容数组中的位置 |
+| `toolcall_delta` | 工具参数流式传输 | `delta`：JSON 块，`partial.content[contentIndex].arguments`：部分解析的参数 |
+| `toolcall_end` | 工具调用完成 | `toolCall`：使用 `id`、`name`、`arguments` 完成经过验证的工具调用 |
+| `done` | 流结束 | `reason`：停止原因（`stop`、`length`、`toolUse`），`message`：最终助手消息 |
+| `error` | 发生错误 | `reason`：错误类型（`error` 或 `aborted`），`error`：包含部分内容的 `AssistantMessage` |
 
-## Image Input
+## 图像输入
 
-Models with vision capabilities can process images. You can check if a model supports images via the `input` property. If you pass images to a non-vision model, they are silently ignored.
+支持视觉能力的模型可以处理图像。你可以通过 `input` 属性检查模型是否支持图像。如果把图像传给不支持视觉的模型，这些图像会被静默忽略。
 
 ```typescript
 import { readFileSync } from 'fs';
@@ -416,11 +416,11 @@ for (const block of response.content) {
 }
 ```
 
-## Thinking/Reasoning
+## 思考/推理
 
-Many models support thinking/reasoning capabilities where they can show their internal thought process. You can check if a model supports reasoning via the `reasoning` property. If you pass reasoning options to a non-reasoning model, they are silently ignored.
+许多模型支持思考/推理能力，并能输出相应的思考内容。你可以通过 `reasoning` 属性检查模型是否支持推理。如果把推理选项传给不支持推理的模型，这些选项会被静默忽略。
 
-### Unified Interface (streamSimple/completeSimple)
+### 统一接口（streamSimple/completeSimple）
 
 ```typescript
 import { getModel, streamSimple, completeSimple } from '@mariozechner/pi-ai';
@@ -456,9 +456,9 @@ for (const block of response.content) {
 }
 ```
 
-### Provider-Specific Options (stream/complete)
+### provider 特定选项（stream/complete）
 
-For fine-grained control, use the provider-specific options:
+如果你需要更细粒度的控制，可以直接使用 provider 专属选项：
 
 ```typescript
 import { getModel, complete } from '@mariozechner/pi-ai';
@@ -487,9 +487,9 @@ await complete(googleModel, context, {
 });
 ```
 
-### Streaming Thinking Content
+### 流式思维内容
 
-When streaming, thinking content is delivered through specific events:
+流式传输时，思维内容是通过特定事件传递的：
 
 ```typescript
 const s = streamSimple(model, context, { reasoning: 'high' });
@@ -509,21 +509,21 @@ for await (const event of s) {
 }
 ```
 
-## Stop Reasons
+## 停止原因
 
-Every `AssistantMessage` includes a `stopReason` field that indicates how the generation ended:
+每个 `AssistantMessage` 都包含一个 `stopReason` 字段，指示生成如何结束：
 
-- `"stop"` - Normal completion, the model finished its response
-- `"length"` - Output hit the maximum token limit
-- `"toolUse"` - Model is calling tools and expects tool results
-- `"error"` - An error occurred during generation
-- `"aborted"` - Request was cancelled via abort signal
+- `"stop"` - 正常完成，模型完成响应
+- `"length"` - 输出达到最大代币限制
+- `"toolUse"` - 模型正在调用工具并期望工具结果
+- `"error"` - 生成期间发生错误
+- `"aborted"` - 请求已通过中止信号取消
 
-`AssistantMessage` may also include `responseId`, a provider-specific upstream response or message identifier when the underlying API exposes one. Do not assume it is always present across providers.
+`AssistantMessage` 还可能带有 `responseId`，这是 provider 上游返回的响应或消息标识符之一。只有底层 API 暴露该字段时才会出现，所以不要假设它在所有 provider 中都存在。
 
-## Error Handling
+## 错误处理
 
-When a request ends with an error (including aborts and tool call validation errors), the streaming API emits an error event:
+当请求以错误结束（包括中止和工具调用验证错误）时，流 API 会发出错误事件：
 
 ```typescript
 // In streaming
@@ -545,9 +545,9 @@ if (message.stopReason === 'error' || message.stopReason === 'aborted') {
 }
 ```
 
-### Aborting Requests
+### 中止请求
 
-The abort signal allows you to cancel in-progress requests. Aborted requests have `stopReason === 'aborted'`:
+中止信号可以取消正在进行的请求。被中止的请求会带有 `stopReason === 'aborted'`：
 
 ```typescript
 import { getModel, stream } from '@mariozechner/pi-ai';
@@ -582,9 +582,9 @@ if (response.stopReason === 'aborted') {
 }
 ```
 
-### Continuing After Abort
+### 中止后继续
 
-Aborted messages can be added to the conversation context and continued in subsequent requests:
+中止的消息可以添加到对话上下文中并在后续请求中继续：
 
 ```typescript
 const context = {
@@ -607,9 +607,9 @@ context.messages.push({ role: 'user', content: 'Please continue' });
 const continuation = await complete(model, context);
 ```
 
-### Debugging Provider Payloads
+### 调试 provider 请求负载
 
-Use the `onPayload` callback to inspect the request payload sent to the provider. This is useful for debugging request formatting issues or provider validation errors.
+使用 `onPayload` 回调检查实际发送给 provider 的请求负载。这对于排查请求格式问题或 provider 返回的校验错误非常有用。
 
 ```typescript
 const response = await complete(model, context, {
@@ -619,33 +619,33 @@ const response = await complete(model, context, {
 });
 ```
 
-The callback is supported by `stream`, `complete`, `streamSimple`, and `completeSimple`.
+`stream`、`complete`、`streamSimple` 和 `completeSimple` 支持回调。
 
-## APIs, Models, and Providers
+## API、模型和 provider
 
-The library uses a registry of API implementations. Built-in APIs include:
+该库使用 API 实现的注册表。内置 API 包括：
 
-- **`anthropic-messages`**: Anthropic Messages API (`streamAnthropic`, `AnthropicOptions`)
-- **`google-generative-ai`**: Google Generative AI API (`streamGoogle`, `GoogleOptions`)
-- **`google-gemini-cli`**: Google Cloud Code Assist API (`streamGoogleGeminiCli`, `GoogleGeminiCliOptions`)
-- **`google-vertex`**: Google Vertex AI API (`streamGoogleVertex`, `GoogleVertexOptions`)
-- **`mistral-conversations`**: Mistral Conversations API (`streamMistral`, `MistralOptions`)
-- **`openai-completions`**: OpenAI Chat Completions API (`streamOpenAICompletions`, `OpenAICompletionsOptions`)
-- **`openai-responses`**: OpenAI Responses API (`streamOpenAIResponses`, `OpenAIResponsesOptions`)
-- **`openai-codex-responses`**: OpenAI Codex Responses API (`streamOpenAICodexResponses`, `OpenAICodexResponsesOptions`)
-- **`azure-openai-responses`**: Azure OpenAI Responses API (`streamAzureOpenAIResponses`, `AzureOpenAIResponsesOptions`)
-- **`bedrock-converse-stream`**: Amazon Bedrock Converse API (`streamBedrock`, `BedrockOptions`)
+- **`anthropic-messages`**：Anthropic Messages API（`streamAnthropic`、`AnthropicOptions`）
+- **`google-generative-ai`**：Google 生成式 AI API（`streamGoogle`、`GoogleOptions`）
+- **`google-gemini-cli`**：Google Cloud Code Assist API（`streamGoogleGeminiCli`、`GoogleGeminiCliOptions`）
+- **`google-vertex`**：Google Vertex AI API（`streamGoogleVertex`、`GoogleVertexOptions`）
+- **`mistral-conversations`**：Mistral Conversations API（`streamMistral`、`MistralOptions`）
+- **`openai-completions`**：OpenAI 聊天完成 API（`streamOpenAICompletions`、`OpenAICompletionsOptions`）
+- **`openai-responses`**：OpenAI 响应 API（`streamOpenAIResponses`、`OpenAIResponsesOptions`）
+- **`openai-codex-responses`**：OpenAI Codex 响应 API（`streamOpenAICodexResponses`、`OpenAICodexResponsesOptions`）
+- **`azure-openai-responses`**：Azure OpenAI 响应 API（`streamAzureOpenAIResponses`、`AzureOpenAIResponsesOptions`）
+- **`bedrock-converse-stream`**：Amazon Bedrock Converse API（`streamBedrock`、`BedrockOptions`）
 
-### Providers and Models
+### provider 和模型
 
-A **provider** offers models through a specific API. For example:
-- **Anthropic** models use the `anthropic-messages` API
-- **Google** models use the `google-generative-ai` API
-- **OpenAI** models use the `openai-responses` API
-- **Mistral** models use the `mistral-conversations` API
-- **xAI, Cerebras, Groq, etc.** models use the `openai-completions` API (OpenAI-compatible)
+**provider** 通过特定 API 提供模型。例如：
+- **Anthropic** 模型使用 `anthropic-messages` API
+- **Google** 模型使用 `google-generative-ai` API
+- **OpenAI** 模型使用 `openai-responses` API
+- **Mistral** 模型使用 `mistral-conversations` API
+- **xAI、Cerebras、Groq 等**模型使用 `openai-completions` API（兼容 OpenAI）
 
-### Querying Providers and Models
+### 查询 provider 和模型
 
 ```typescript
 import { getProviders, getModels, getModel } from '@mariozechner/pi-ai';
@@ -669,9 +669,9 @@ const model = getModel('openai', 'gpt-4o-mini');
 console.log(`Using ${model.name} via ${model.api} API`);
 ```
 
-### Custom Models
+### 定制模型
 
-You can create custom models for local inference servers or custom endpoints:
+你可以为本地推理服务器或自定义端点创建自定义模型：
 
 ```typescript
 import { Model, stream } from '@mariozechner/pi-ai';
@@ -731,9 +731,9 @@ const response = await stream(ollamaModel, context, {
 });
 ```
 
-Some OpenAI-compatible servers do not understand the `developer` role used for reasoning-capable models. For those providers, set `compat.supportsDeveloperRole` to `false` so the system prompt is sent as a `system` message instead. If the server also does not support `reasoning_effort`, set `compat.supportsReasoningEffort` to `false` too.
+一些 OpenAI 兼容服务器并不理解推理模型里的 `developer` 角色。对于这些 provider，可以把 `compat.supportsDeveloperRole` 设为 `false`，这样系统提示会以 `system` 消息发送。如果服务器也不支持 `reasoning_effort`，再把 `compat.supportsReasoningEffort` 设为 `false`。
 
-This commonly applies to Ollama, vLLM, SGLang, and similar OpenAI-compatible servers. You can set `compat` at the provider level or per model.
+这通常适用于 Ollama、vLLM、SGLang 以及类似的 OpenAI 兼容服务。你既可以在 provider 级别设置 `compat`，也可以为单个模型单独设置。
 
 ```typescript
 const ollamaReasoningModel: Model<'openai-completions'> = {
@@ -754,9 +754,9 @@ const ollamaReasoningModel: Model<'openai-completions'> = {
 };
 ```
 
-### OpenAI Compatibility Settings
+### OpenAI 兼容性设置
 
-The `openai-completions` API is implemented by many providers with minor differences. By default, the library auto-detects compatibility settings based on `baseUrl` for a small set of known OpenAI-compatible providers (Cerebras, xAI, Chutes, DeepSeek, zAi, OpenCode, etc.). For custom proxies or unknown endpoints, you can override these settings via the `compat` field. For `openai-responses` models, the compat field only supports Responses-specific flags.
+`openai-completions` API 被很多 provider 实现，但彼此之间仍有细微差别。默认情况下，这个库会根据一小部分已知的 OpenAI 兼容 provider（Cerebras、xAI、Chutes、DeepSeek、zAi、OpenCode 等），基于 `baseUrl` 自动推断兼容性设置。对于自定义代理或未知端点，你可以通过 `compat` 字段覆盖这些设置。对于 `openai-responses` 模型，`compat` 字段目前只支持 Responses API 相关标志。
 
 ```typescript
 interface OpenAICompletionsCompat {
@@ -779,15 +779,15 @@ interface OpenAIResponsesCompat {
 }
 ```
 
-If `compat` is not set, the library falls back to URL-based detection. If `compat` is partially set, unspecified fields use the detected defaults. This is useful for:
+如果没有显式设置 `compat`，库会回退到基于 URL 的自动检测。如果 `compat` 只配置了一部分，未指定的字段会继续使用检测到的默认值。这种机制尤其适用于：
 
-- **LiteLLM proxies**: May not support `store` field
-- **Custom inference servers**: May use non-standard field names
-- **Self-hosted endpoints**: May have different feature support
+- **LiteLLM 代理**：可能不支持 `store` 字段
+- **自定义推理服务器**：可能使用非标准字段名称
+- **自托管端点**：可能有不同的功能支持
 
-### Type Safety
+### 类型安全
 
-Models are typed by their API, which keeps the model metadata accurate. Provider-specific option types are enforced when you call the provider functions directly. The generic `stream` and `complete` functions accept `StreamOptions` with additional provider fields.
+模型会按其 API 类型进行约束，从而保持模型元数据的准确性。当你直接调用某个 provider 的函数时，TypeScript 会强制使用该 provider 对应的选项类型。通用的 `stream` 和 `complete` 则接受 `StreamOptions`，以及附加的 provider 专属字段。
 
 ```typescript
 import { streamAnthropic, type AnthropicOptions } from '@mariozechner/pi-ai';
@@ -803,20 +803,20 @@ const options: AnthropicOptions = {
 await streamAnthropic(claude, context, options);
 ```
 
-## Cross-Provider Handoffs
+## 跨 provider 交接
 
-The library supports seamless handoffs between different LLM providers within the same conversation. This allows you to switch models mid-conversation while preserving context, including thinking blocks, tool calls, and tool results.
+这个库支持在同一段对话中无缝切换不同 LLM provider。你可以在对话进行过程中切换模型，同时保留上下文，包括思考块、工具调用和工具结果。
 
-### How It Works
+### 它是如何运作的
 
-When messages from one provider are sent to a different provider, the library automatically transforms them for compatibility:
+当一个 provider 的消息被发送给另一个 provider 时，库会自动做兼容性转换：
 
-- **User and tool result messages** are passed through unchanged
-- **Assistant messages from the same provider/API** are preserved as-is
-- **Assistant messages from different providers** have their thinking blocks converted to text with `<thinking>` tags
-- **Tool calls and regular text** are preserved unchanged
+- **用户消息和工具结果消息**会原样传递
+- **来自同一 provider/API 的助手消息**会保持原样
+- **来自不同 provider 的助手消息**会把思考块转换成带 `<thinking>` 标签的文本
+- **工具调用和常规文本**保持不变
 
-### Example: Multi-Provider Conversation
+### 示例：多 provider 对话
 
 ```typescript
 import { getModel, complete, Context } from '@mariozechner/pi-ai';
@@ -845,23 +845,23 @@ context.messages.push({ role: 'user', content: 'What was the original question?'
 const geminiResponse = await complete(gemini, context);
 ```
 
-### Provider Compatibility
+### provider 兼容性
 
-All providers can handle messages from other providers, including:
-- Text content
-- Tool calls and tool results (including images in tool results)
-- Thinking/reasoning blocks (transformed to tagged text for cross-provider compatibility)
-- Aborted messages with partial content
+所有 provider 都可以处理来自其他 provider 的消息，包括：
+- 文字内容
+- 工具调用和工具结果（包括工具结果中的图像）
+- 思考/推理块（转换为标记文本以实现跨提供商兼容性）
+- 中止包含部分内容的消息
 
-This enables flexible workflows where you can:
-- Start with a fast model for initial responses
-- Switch to a more capable model for complex reasoning
-- Use specialized models for specific tasks
-- Maintain conversation continuity across provider outages
+这带来了更灵活的工作流，你可以：
+- 从快速模型开始进行初始响应
+- 切换到更强大的模型进行复杂推理
+- 使用专门的模型来完成特定的任务
+- 在某个 provider 中断时继续保持对话连续性
 
-## Context Serialization
+## 上下文序列化
 
-The `Context` object can be easily serialized and deserialized using standard JSON methods, making it simple to persist conversations, implement chat history, or transfer contexts between services:
+`Context` 对象可以使用标准 JSON 方法轻松序列化和反序列化，从而可以轻松地保存对话、实现聊天历史记录或在服务之间传输上下文：
 
 ```typescript
 import { Context, getModel, complete } from '@mariozechner/pi-ai';
@@ -894,11 +894,11 @@ const newModel = getModel('anthropic', 'claude-3-5-haiku-20241022');
 const continuation = await complete(newModel, restored);
 ```
 
-> **Note**: If the context contains images (encoded as base64 as shown in the Image Input section), those will also be serialized.
+> **注意**：如果上下文包含图像（编码为 base64，如图像输入部分所示），这些图像也将被序列化。
 
-## Browser Usage
+## 浏览器使用
 
-The library supports browser environments. You must pass the API key explicitly since environment variables are not available in browsers:
+这个库支持浏览器环境。由于浏览器里拿不到环境变量，你必须显式传入 API 密钥：
 
 ```typescript
 import { getModel, complete } from '@mariozechner/pi-ai';
@@ -913,39 +913,39 @@ const response = await complete(model, {
 });
 ```
 
-> **Security Warning**: Exposing API keys in frontend code is dangerous. Anyone can extract and abuse your keys. Only use this approach for internal tools or demos. For production applications, use a backend proxy that keeps your API keys secure.
+> **安全警告：** 在前端代码里暴露 API 密钥是危险的。任何人都可能提取并滥用你的密钥。这个方式只适合内部工具或演示环境；如果是生产环境，请使用后端代理来保护 API 密钥。
 
-### Browser Compatibility Notes
+### 浏览器兼容性说明
 
-- Amazon Bedrock (`bedrock-converse-stream`) is not supported in browser environments.
-- OAuth login flows are not supported in browser environments. Use the `@mariozechner/pi-ai/oauth` entry point in Node.js.
-- In browser builds, Bedrock can still appear in model lists. Calls to Bedrock models fail at runtime.
-- Use a server-side proxy or backend service if you need Bedrock or OAuth-based auth from a web app.
+- 浏览器环境不支持 Amazon Bedrock (`bedrock-converse-stream`)。
+- 浏览器环境不支持 OAuth 登录流程。使用 Node.js 中的 `@mariozechner/pi-ai/oauth` 入口点。
+- 在浏览器环境里，Bedrock 模型仍可能出现在模型列表中，但真正调用时会在运行时报错。
+- 如果你需要在 Web 应用里使用 Bedrock 或 OAuth 认证，请通过服务端代理或后端服务完成。
 
-### Environment Variables (Node.js only)
+### 环境变量（仅限 Node.js）
 
-In Node.js environments, you can set environment variables to avoid passing API keys:
+在 Node.js 环境里，你可以通过环境变量避免在代码里显式传递 API 密钥：
 
-| Provider | Environment Variable(s) |
+| provider | 环境变量 |
 |----------|------------------------|
 | OpenAI | `OPENAI_API_KEY` |
-| Azure OpenAI | `AZURE_OPENAI_API_KEY` + `AZURE_OPENAI_BASE_URL` or `AZURE_OPENAI_RESOURCE_NAME` (optional `AZURE_OPENAI_API_VERSION`, `AZURE_OPENAI_DEPLOYMENT_NAME_MAP` like `model=deployment,model2=deployment2`) |
-| Anthropic | `ANTHROPIC_API_KEY` or `ANTHROPIC_OAUTH_TOKEN` |
+| Azure OpenAI | `AZURE_OPENAI_API_KEY` + `AZURE_OPENAI_BASE_URL` 或 `AZURE_OPENAI_RESOURCE_NAME`（可选 `AZURE_OPENAI_API_VERSION`、`AZURE_OPENAI_DEPLOYMENT_NAME_MAP`，如 `model=deployment,model2=deployment2`） |
+| Anthropic | `ANTHROPIC_API_KEY` 或 `ANTHROPIC_OAUTH_TOKEN` |
 | Google | `GEMINI_API_KEY` |
-| Vertex AI | `GOOGLE_CLOUD_API_KEY` or `GOOGLE_CLOUD_PROJECT` (or `GCLOUD_PROJECT`) + `GOOGLE_CLOUD_LOCATION` + ADC |
+| Vertex AI | `GOOGLE_CLOUD_API_KEY` 或 `GOOGLE_CLOUD_PROJECT`（或 `GCLOUD_PROJECT`）+ `GOOGLE_CLOUD_LOCATION` + ADC |
 | Mistral | `MISTRAL_API_KEY` |
 | Groq | `GROQ_API_KEY` |
 | Cerebras | `CEREBRAS_API_KEY` |
 | xAI | `XAI_API_KEY` |
 | OpenRouter | `OPENROUTER_API_KEY` |
 | Vercel AI Gateway | `AI_GATEWAY_API_KEY` |
-| zAI | `ZAI_API_KEY` |
+| ZAI | `ZAI_API_KEY` |
 | MiniMax | `MINIMAX_API_KEY` |
 | OpenCode Zen / OpenCode Go | `OPENCODE_API_KEY` |
-| Kimi For Coding | `KIMI_API_KEY` |
-| GitHub Copilot | `COPILOT_GITHUB_TOKEN` or `GH_TOKEN` or `GITHUB_TOKEN` |
+| Kimi for Coding | `KIMI_API_KEY` |
+| GitHub Copilot | `COPILOT_GITHUB_TOKEN` 或 `GH_TOKEN` 或 `GITHUB_TOKEN` |
 
-When set, the library automatically uses these keys:
+设置后，库会自动使用这些键：
 
 ```typescript
 // Uses OPENAI_API_KEY from environment
@@ -958,28 +958,28 @@ const response = await complete(model, context, {
 });
 ```
 
-#### Antigravity Version Override
+#### 反重力版本覆盖
 
-Set `PI_AI_ANTIGRAVITY_VERSION` to override the Antigravity User-Agent version when Google updates their requirements:
+当 Google 更新其要求时，可以设置 `PI_AI_ANTIGRAVITY_VERSION` 来覆盖 Antigravity 的 User-Agent 版本：
 
 ```bash
 export PI_AI_ANTIGRAVITY_VERSION="1.23.0"
 ```
 
-#### Cache Retention
+#### 缓存保留
 
-Set `PI_CACHE_RETENTION=long` to extend prompt cache retention:
+设置 `PI_CACHE_RETENTION=long` 以延长提示缓存保留时间：
 
-| Provider | Default | With `PI_CACHE_RETENTION=long` |
+| provider | 默认 | 设置 `PI_CACHE_RETENTION=long` 后 |
 |----------|---------|-------------------------------|
-| Anthropic | 5 minutes | 1 hour |
-| OpenAI | in-memory | 24 hours |
+| Anthropic | 5 分钟 | 1 小时 |
+| OpenAI | 内存中 | 24 小时 |
 
-This only affects direct API calls to `api.anthropic.com` and `api.openai.com`. Proxies and other providers are unaffected.
+这只影响对 `api.anthropic.com` 和 `api.openai.com` 的直接 API 调用，代理层和其他 provider 不受影响。
 
-> **Note**: Extended cache retention may increase costs for Anthropic (cache writes are charged at a higher rate). OpenAI's 24h retention has no additional cost.
+> **注意：** 延长缓存保留时间可能会增加 Anthropic 的成本，因为缓存写入价格更高。OpenAI 的 24 小时保留则不会额外收费。
 
-### Checking Environment Variables
+### 检查环境变量
 
 ```typescript
 import { getEnvApiKey } from '@mariozechner/pi-ai';
@@ -988,29 +988,29 @@ import { getEnvApiKey } from '@mariozechner/pi-ai';
 const key = getEnvApiKey('openai');  // checks OPENAI_API_KEY
 ```
 
-## OAuth Providers
+## OAuth 提供商
 
-Several providers require OAuth authentication instead of static API keys:
+有些 provider 需要 OAuth 认证，而不是静态 API 密钥：
 
-- **Anthropic** (Claude Pro/Max subscription)
-- **OpenAI Codex** (ChatGPT Plus/Pro subscription, access to GPT-5.x Codex models)
-- **GitHub Copilot** (Copilot subscription)
-- **Google Gemini CLI** (Gemini 2.0/2.5 via Google Cloud Code Assist; free tier or paid subscription)
-- **Antigravity** (Free Gemini 3, Claude, GPT-OSS via Google Cloud)
+- **Anthropic**（Claude Pro/Max 订阅）
+- **OpenAI Codex**（ChatGPT Plus/Pro 订阅，访问 GPT-5.x Codex 模型）
+- **GitHub Copilot**（Copilot 订阅）
+- **Google Gemini CLI**（通过 Google Cloud Code Assist 的 Gemini 2.0/2.5；免费套餐或付费订阅）
+- **Google Antigravity**（通过 Google Cloud 免费使用 Gemini 3、Claude、GPT-OSS）
 
-For paid Cloud Code Assist subscriptions, set `GOOGLE_CLOUD_PROJECT` or `GOOGLE_CLOUD_PROJECT_ID` to your project ID.
+如果你使用的是付费版 Cloud Code Assist，请把 `GOOGLE_CLOUD_PROJECT` 或 `GOOGLE_CLOUD_PROJECT_ID` 设置为你的项目 ID。
 
 ### Vertex AI
 
-Vertex AI models support either a Google Cloud API key or Application Default Credentials (ADC):
+Vertex AI 模型支持 Google Cloud API 密钥或 Application Default Credentials（ADC）：
 
-- **API key**: Set `GOOGLE_CLOUD_API_KEY` or pass `apiKey` in the call options.
-- **Local development (ADC)**: Run `gcloud auth application-default login`
-- **CI/Production (ADC)**: Set `GOOGLE_APPLICATION_CREDENTIALS` to point to a service account JSON key file
+- **API 密钥**：在调用选项里设置 `GOOGLE_CLOUD_API_KEY`，或者直接传入 `apiKey`
+- **本地开发 (ADC)**：运行 `gcloud auth application-default login`
+- **CI/生产 (ADC)**：设置 `GOOGLE_APPLICATION_CREDENTIALS` 以指向服务帐户 JSON 密钥文件
 
-When using ADC, also set `GOOGLE_CLOUD_PROJECT` (or `GCLOUD_PROJECT`) and `GOOGLE_CLOUD_LOCATION`. You can also pass `project`/`location` in the call options. When using `GOOGLE_CLOUD_API_KEY`, `project` and `location` are not required.
+使用 ADC 时，还要设置 `GOOGLE_CLOUD_PROJECT`（或 `GCLOUD_PROJECT`）和 `GOOGLE_CLOUD_LOCATION`。你也可以在调用选项里直接传入 `project` / `location`。如果使用的是 `GOOGLE_CLOUD_API_KEY`，则不需要 `project` 和 `location`。
 
-Example:
+例子：
 
 ```bash
 # Local (uses your user credentials)
@@ -1039,23 +1039,23 @@ import { getModel, complete } from '@mariozechner/pi-ai';
 })().catch(console.error);
 ```
 
-Official docs: [Application Default Credentials](https://cloud.google.com/docs/authentication/application-default-credentials)
+官方文档：[Application Default Credentials](https://cloud.google.com/docs/authentication/application-default-credentials)
 
-### CLI Login
+### CLI 登录
 
-The quickest way to authenticate:
+最快的认证方式：
 
 ```bash
-npx @mariozechner/pi-ai login              # interactive provider selection
-npx @mariozechner/pi-ai login anthropic    # login to specific provider
-npx @mariozechner/pi-ai list               # list available providers
+npx @mariozechner/pi-ai login              # 交互式选择 provider
+npx @mariozechner/pi-ai login anthropic    # 登录指定 provider
+npx @mariozechner/pi-ai list               # 列出可用 provider
 ```
 
-Credentials are saved to `auth.json` in the current directory.
+凭证会保存在当前目录下的 `auth.json` 中。
 
-### Programmatic OAuth
+### 程序化 OAuth
 
-The library provides login and token refresh functions via the `@mariozechner/pi-ai/oauth` entry point. Credential storage is the caller's responsibility.
+该库通过 `@mariozechner/pi-ai/oauth` 入口点提供登录和令牌刷新功能。凭证存储是调用者的责任。
 
 ```typescript
 import {
@@ -1076,7 +1076,7 @@ import {
 } from '@mariozechner/pi-ai/oauth';
 ```
 
-### Login Flow Example
+### 登录流程示例
 
 ```typescript
 import { loginGitHubCopilot } from '@mariozechner/pi-ai/oauth';
@@ -1098,9 +1098,9 @@ const auth = { 'github-copilot': { type: 'oauth', ...credentials } };
 writeFileSync('auth.json', JSON.stringify(auth, null, 2));
 ```
 
-### Using OAuth Tokens
+### 使用 OAuth 令牌
 
-Use `getOAuthApiKey()` to get an API key, automatically refreshing if expired:
+使用 `getOAuthApiKey()` 获取 API key，过期自动刷新：
 
 ```typescript
 import { getModel, complete } from '@mariozechner/pi-ai';
@@ -1125,99 +1125,99 @@ const response = await complete(model, {
 }, { apiKey: result.apiKey });
 ```
 
-### Provider Notes
+### provider 说明
 
-**OpenAI Codex**: Requires a ChatGPT Plus or Pro subscription. Provides access to GPT-5.x Codex models with extended context windows and reasoning capabilities. The library automatically handles session-based prompt caching when `sessionId` is provided in stream options. You can set `transport` in stream options to `"sse"`, `"websocket"`, or `"auto"` for Codex Responses transport selection. When using WebSocket with a `sessionId`, connections are reused per session and expire after 5 minutes of inactivity.
+**OpenAI Codex**：需要 ChatGPT Plus 或 Pro 订阅，可访问带扩展上下文窗口和推理能力的 GPT-5.x Codex 模型。当流选项中提供 `sessionId` 时，库会自动处理基于会话的 prompt cache。你还可以把流选项中的 `transport` 设为 `"sse"`、`"websocket"` 或 `"auto"`，用于选择 Codex 响应传输方式。将 WebSocket 与 `sessionId` 结合使用时，每个会话会复用同一条连接，并在 5 分钟无活动后过期。
 
-**Azure OpenAI (Responses)**: Uses the Responses API only. Set `AZURE_OPENAI_API_KEY` and either `AZURE_OPENAI_BASE_URL` or `AZURE_OPENAI_RESOURCE_NAME`. Use `AZURE_OPENAI_API_VERSION` (defaults to `v1`) to override the API version if needed. Deployment names are treated as model IDs by default, override with `azureDeploymentName` or `AZURE_OPENAI_DEPLOYMENT_NAME_MAP` using comma-separated `model-id=deployment` pairs (for example `gpt-4o-mini=my-deployment,gpt-4o=prod`). Legacy deployment-based URLs are intentionally unsupported.
+**Azure OpenAI（Responses）**：仅支持 Responses API。设置 `AZURE_OPENAI_API_KEY` 以及 `AZURE_OPENAI_BASE_URL` 或 `AZURE_OPENAI_RESOURCE_NAME`。如有需要，可通过 `AZURE_OPENAI_API_VERSION`（默认 `v1`）覆盖 API 版本。默认情况下，部署名称会被当作模型 ID；你也可以用逗号分隔的 `model-id=deployment` 对（例如 `gpt-4o-mini=my-deployment,gpt-4o=prod`）覆盖 `azureDeploymentName` 或 `AZURE_OPENAI_DEPLOYMENT_NAME_MAP`。库有意不支持旧式 deployment URL。
 
-**GitHub Copilot**: If you get "The requested model is not supported" error, enable the model manually in VS Code: open Copilot Chat, click the model selector, select the model (warning icon), and click "Enable".
+**GitHub Copilot**：如果出现“不支持请求的模型”错误，请在 VS Code 中手动启用模型：打开 Copilot Chat，单击模型选择器，选择模型（警告图标），然后单击“启用”。
 
-**Google Gemini CLI / Antigravity**: These use Google Cloud OAuth. The `apiKey` returned by `getOAuthApiKey()` is a JSON string containing both the token and project ID, which the library handles automatically.
+**Google Gemini CLI / Antigravity**：这两个 provider 都使用 Google Cloud OAuth。`getOAuthApiKey()` 返回的 `apiKey` 实际上是一个 JSON 字符串，里面包含 token 和项目 ID，库会自动处理。
 
-## Development
+## 开发
 
-### Adding a New Provider
+### 添加新的 provider
 
-Adding a new LLM provider requires changes across multiple files. This checklist covers all necessary steps:
+添加新的 LLM provider 需要同时修改多个文件。下面这份清单覆盖了完整步骤：
 
-#### 1. Core Types (`src/types.ts`)
+#### 1. 核心类型 (`src/types.ts`)
 
-- Add the API identifier to `KnownApi` (for example `"bedrock-converse-stream"`)
-- Create an options interface extending `StreamOptions` (for example `BedrockOptions`)
-- Add the provider name to `KnownProvider` (for example `"amazon-bedrock"`)
+- 将 API 标识符添加到 `KnownApi`（例如 `"bedrock-converse-stream"`）
+- 创建一个扩展 `StreamOptions` 的选项接口（例如 `BedrockOptions`）
+- 将 provider 名称添加到 `KnownProvider`（例如 `"amazon-bedrock"`）
 
-#### 2. Provider Implementation (`src/providers/`)
+#### 2. provider 实现 (`src/providers/`)
 
-Create a new provider file (for example `amazon-bedrock.ts`) that exports:
+创建一个新的 provider 文件（例如 `amazon-bedrock.ts`），导出：
 
-- `stream<Provider>()` function returning `AssistantMessageEventStream`
-- `streamSimple<Provider>()` for `SimpleStreamOptions` mapping
-- Provider-specific options interface
-- Message conversion functions to transform `Context` to provider format
-- Tool conversion if the provider supports tools
-- Response parsing to emit standardized events (`text`, `tool_call`, `thinking`, `usage`, `stop`)
+- `stream<Provider>()` 函数返回 `AssistantMessageEventStream`
+- `streamSimple<Provider>()` 用于 `SimpleStreamOptions` 映射
+- provider 专属选项接口
+- 把 `Context` 转换成 provider 所需格式的消息转换函数
+- 如果该 provider 支持工具，还需要实现工具定义转换
+- 响应解析以发出标准化事件（`text`、`tool_call`、`thinking`、`usage`、`stop`）
 
-#### 3. API Registry Integration (`src/providers/register-builtins.ts`)
+#### 3. API 注册表集成 (`src/providers/register-builtins.ts`)
 
-- Register the API with `registerApiProvider()`
-- Add a package subpath export in `package.json` for the provider module (`./dist/providers/<provider>.js`)
-- Add lazy loader wrappers in `src/providers/register-builtins.ts`, do not statically import provider implementation modules there
-- Add any root-level `export type` re-exports in `src/index.ts` that should remain available from `@mariozechner/pi-ai`
-- Add credential detection in `env-api-keys.ts` for the new provider
-- Ensure `streamSimple` handles auth lookup via `getEnvApiKey()` or provider-specific auth
+- 使用 `registerApiProvider()` 注册 API
+- 在 `package.json` 中为 provider 模块（`./dist/providers/<provider>.js`）添加子路径导出
+- 在 `src/providers/register-builtins.ts` 中添加惰性加载器包装器，不要在那里静态导入 provider 实现模块
+- 在 `src/index.ts` 中补上需要从根入口继续暴露的 `export type`
+- 在 `env-api-keys.ts` 中为新 provider 添加凭据检测
+- 确保 `streamSimple` 能通过 `getEnvApiKey()` 或该 provider 自己的认证逻辑完成认证查找
 
-#### 4. Model Generation (`scripts/generate-models.ts`)
+#### 4. 模型生成 (`scripts/generate-models.ts`)
 
-- Add logic to fetch and parse models from the provider's source (e.g., models.dev API)
-- Map provider model data to the standardized `Model` interface
-- Handle provider-specific quirks (pricing format, capability flags, model ID transformations)
+- 添加从 provider 数据源抓取并解析模型的逻辑（例如 models.dev API）
+- 将 provider 的模型数据映射到标准化的 `Model` 接口
+- 处理 provider 特有的差异，例如价格格式、能力标志、模型 ID 转换等
 
-#### 5. Tests (`test/`)
+#### 5. 测试 (`test/`)
 
-Create or update test files to cover the new provider:
+创建或更新测试文件，以覆盖新的 provider：
 
-- `stream.test.ts` - Basic streaming and tool use
-- `tokens.test.ts` - Token usage reporting
-- `abort.test.ts` - Request cancellation
-- `empty.test.ts` - Empty message handling
-- `context-overflow.test.ts` - Context limit errors
-- `image-limits.test.ts` - Image support (if applicable)
-- `unicode-surrogate.test.ts` - Unicode handling
-- `tool-call-without-result.test.ts` - Orphaned tool calls
-- `image-tool-result.test.ts` - Images in tool results
-- `total-tokens.test.ts` - Token counting accuracy
-- `cross-provider-handoff.test.ts` - Cross-provider context replay
+- `stream.test.ts` - 基本流式调用与工具使用
+- `tokens.test.ts` - token 使用报告
+- `abort.test.ts` - 请求取消
+- `empty.test.ts` - 空消息处理
+- `context-overflow.test.ts` - 上下文限制错误
+- `image-limits.test.ts` - 图像支持（如果适用）
+- `unicode-surrogate.test.ts` - Unicode 处理
+- `tool-call-without-result.test.ts` - 孤立的工具调用
+- `image-tool-result.test.ts` - 工具结果中的图像
+- `total-tokens.test.ts` - 令牌计数准确性
+- `cross-provider-handoff.test.ts` - 跨 provider 上下文回放
 
-For `cross-provider-handoff.test.ts`, add at least one provider/model pair. If the provider exposes multiple model families (for example GPT and Claude), add at least one pair per family.
+对于 `cross-provider-handoff.test.ts`，至少要添加一组 provider / model 组合。如果某个 provider 暴露了多个模型家族（例如 GPT 和 Claude），每个家族至少都要加一组。
 
-For providers with non-standard auth (AWS, Google Vertex), create a utility like `bedrock-utils.ts` with credential detection helpers.
+对于使用非标准认证方式的 provider（例如 AWS、Google Vertex），请创建一个带凭据检测辅助逻辑的工具文件，例如 `bedrock-utils.ts`。
 
-#### 6. Coding Agent Integration (`../coding-agent/`)
+#### 6. coding-agent 集成 (`../coding-agent/`)
 
-Update `src/core/model-resolver.ts`:
+更新 `src/core/model-resolver.ts`：
 
-- Add a default model ID for the provider in `DEFAULT_MODELS`
+- 在 `DEFAULT_MODELS` 中为 provider 添加默认模型 ID
 
-Update `src/cli/args.ts`:
+更新 `src/cli/args.ts`：
 
-- Add environment variable documentation in the help text
+- 在帮助文本中添加环境变量文档
 
-Update `README.md`:
+更新 `README.md`：
 
-- Add the provider to the providers section with setup instructions
+- 在 provider 相关章节里补上该 provider 以及对应的配置说明
 
-#### 7. Documentation
+#### 7. 文档
 
-Update `packages/ai/README.md`:
+更新`packages/ai/README.md`：
 
-- Add to the Supported Providers table
-- Document any provider-specific options or authentication requirements
-- Add environment variable to the Environment Variables section
+- 添加到支持的 provider 列表
+- 记录该 provider 的专属选项或认证要求
+- 将环境变量添加到环境变量部分
 
-#### 8. Changelog
+#### 8. 变更日志
 
-Add an entry to `packages/ai/CHANGELOG.md` under `## [Unreleased]`:
+在 `## [Unreleased]` 下的 `packages/ai/CHANGELOG.md` 添加一个条目：
 
 ```markdown
 ### Added

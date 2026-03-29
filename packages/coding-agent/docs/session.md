@@ -1,48 +1,48 @@
-# Session File Format
+# 会话文件格式
 
-Sessions are stored as JSONL (JSON Lines) files. Each line is a JSON object with a `type` field. Session entries form a tree structure via `id`/`parentId` fields, enabling in-place branching without creating new files.
+会话存储为 JSONL（JSON 行）文件。每行都是一个带有 `type` 字段的 JSON 对象。会话条目通过 `id`/`parentId` 字段形成树结构，无需创建新文件即可实现就地分支。
 
-## File Location
+## 文件位置
 
 ```
 ~/.pi/agent/sessions/--<path>--/<timestamp>_<uuid>.jsonl
 ```
 
-Where `<path>` is the working directory with `/` replaced by `-`.
+其中 `<path>` 是工作目录，其中 `/` 替换为 `-`。
 
-## Deleting Sessions
+## 删除会话
 
-Sessions can be removed by deleting their `.jsonl` files under `~/.pi/agent/sessions/`.
+可以通过删除 `~/.pi/agent/sessions/` 下的 `.jsonl` 文件来删除会话。
 
-Pi also supports deleting sessions interactively from `/resume` (select a session and press `Ctrl+D`, then confirm). When available, pi uses the `trash` CLI to avoid permanent deletion.
+Pi 还支持从 `/resume` 交互删除会话（选择一个会话并按 `Ctrl+D`，然后确认）。如果可用，pi 使用 `trash` CLI 来避免永久删除。
 
-## Session Version
+## 会话版本
 
-Sessions have a version field in the header:
+会话在标头中有一个版本字段：
 
-- **Version 1**: Linear entry sequence (legacy, auto-migrated on load)
-- **Version 2**: Tree structure with `id`/`parentId` linking
-- **Version 3**: Renamed `hookMessage` role to `custom` (extensions unification)
+- **版本 1**：线性输入序列（旧版，加载时自动迁移）
+- **版本 2**：具有 `id`/`parentId` 链接的树结构
+- **版本 3**：将 `hookMessage` 角色重命名为 `custom` （扩展统一）
 
-Existing sessions are automatically migrated to the current version (v3) when loaded.
+现有会话在加载时会自动迁移到当前版本 (v3)。
 
-## Source Files
+## 源文件
 
-Source on GitHub ([pi-mono](https://github.com/badlogic/pi-mono)):
-- [`packages/coding-agent/src/core/session-manager.ts`](https://github.com/badlogic/pi-mono/blob/main/packages/coding-agent/src/core/session-manager.ts) - Session entry types and SessionManager
-- [`packages/coding-agent/src/core/messages.ts`](https://github.com/badlogic/pi-mono/blob/main/packages/coding-agent/src/core/messages.ts) - Extended message types (BashExecutionMessage, CustomMessage, etc.)
-- [`packages/ai/src/types.ts`](https://github.com/badlogic/pi-mono/blob/main/packages/ai/src/types.ts) - Base message types (UserMessage, AssistantMessage, ToolResultMessage)
-- [`packages/agent/src/types.ts`](https://github.com/badlogic/pi-mono/blob/main/packages/agent/src/types.ts) - AgentMessage union type
+GitHub 上的来源 ([pi-mono](https://github.com/badlogic/pi-mono))：
+- [`packages/coding-agent/src/core/session-manager.ts`](https://github.com/badlogic/pi-mono/blob/main/packages/coding-agent/src/core/session-manager.ts) - 会话条目类型和 SessionManager
+- [`packages/coding-agent/src/core/messages.ts`](https://github.com/badlogic/pi-mono/blob/main/packages/coding-agent/src/core/messages.ts) - 扩展消息类型（BashExecutionMessage、CustomMessage 等）
+- [`packages/ai/src/types.ts`](https://github.com/badlogic/pi-mono/blob/main/packages/ai/src/types.ts) - 基本消息类型（UserMessage、AssistantMessage、ToolResultMessage）
+- [`packages/agent/src/types.ts`](https://github.com/badlogic/pi-mono/blob/main/packages/agent/src/types.ts) - AgentMessage 联合类型
 
-For TypeScript definitions in your project, inspect `node_modules/@mariozechner/pi-coding-agent/dist/` and `node_modules/@mariozechner/pi-ai/dist/`.
+对于项目中的 TypeScript 定义，请检查 `node_modules/@mariozechner/pi-coding-agent/dist/` 和 `node_modules/@mariozechner/pi-ai/dist/`。
 
-## Message Types
+## 消息类型
 
-Session entries contain `AgentMessage` objects. Understanding these types is essential for parsing sessions and writing extensions.
+会话条目包含 `AgentMessage` 对象。理解这些类型对于解析会话和编写扩展至关重要。
 
-### Content Blocks
+### 内容块
 
-Messages contain arrays of typed content blocks:
+消息包含类型化内容块的数组：
 
 ```typescript
 interface TextContent {
@@ -69,7 +69,7 @@ interface ToolCall {
 }
 ```
 
-### Base Message Types (from pi-ai)
+### 基本消息类型（来自 pi-ai）
 
 ```typescript
 interface UserMessage {
@@ -116,7 +116,7 @@ interface Usage {
 }
 ```
 
-### Extended Message Types (from pi-coding-agent)
+### 扩展消息类型（来自 pi-coding-agent）
 
 ```typescript
 interface BashExecutionMessage {
@@ -155,7 +155,7 @@ interface CompactionSummaryMessage {
 }
 ```
 
-### AgentMessage Union
+### Agent消息联盟
 
 ```typescript
 type AgentMessage =
@@ -168,9 +168,9 @@ type AgentMessage =
   | CompactionSummaryMessage;
 ```
 
-## Entry Base
+## 入门基础
 
-All entries (except `SessionHeader`) extend `SessionEntryBase`:
+所有条目（`SessionHeader` 除外）都扩展 `SessionEntryBase`：
 
 ```typescript
 interface SessionEntryBase {
@@ -181,25 +181,25 @@ interface SessionEntryBase {
 }
 ```
 
-## Entry Types
+## 条目类型
 
-### SessionHeader
+### 会话标头
 
-First line of the file. Metadata only, not part of the tree (no `id`/`parentId`).
+文件的第一行。仅元数据，不是树的一部分（无 `id`/`parentId`）。
 
 ```json
 {"type":"session","version":3,"id":"uuid","timestamp":"2024-12-03T14:00:00.000Z","cwd":"/path/to/project"}
 ```
 
-For sessions with a parent (created via `/fork` or `newSession({ parentSession })`):
+对于带父会话的会话（通过 `/fork` 或 `newSession({ parentSession })` 创建）：
 
 ```json
 {"type":"session","version":3,"id":"uuid","timestamp":"2024-12-03T14:00:00.000Z","cwd":"/path/to/project","parentSession":"/path/to/original/session.jsonl"}
 ```
 
-### SessionMessageEntry
+### 会话消息条目
 
-A message in the conversation. The `message` field contains an `AgentMessage`.
+对话中的一条消息。 `message` 字段包含 `AgentMessage`。
 
 ```json
 {"type":"message","id":"a1b2c3d4","parentId":"prev1234","timestamp":"2024-12-03T14:00:01.000Z","message":{"role":"user","content":"Hello"}}
@@ -207,116 +207,116 @@ A message in the conversation. The `message` field contains an `AgentMessage`.
 {"type":"message","id":"c3d4e5f6","parentId":"b2c3d4e5","timestamp":"2024-12-03T14:00:03.000Z","message":{"role":"toolResult","toolCallId":"call_123","toolName":"bash","content":[{"type":"text","text":"output"}],"isError":false}}
 ```
 
-### ModelChangeEntry
+### 模型更改条目
 
-Emitted when the user switches models mid-session.
+当用户在会话中切换模型时发出。
 
 ```json
 {"type":"model_change","id":"d4e5f6g7","parentId":"c3d4e5f6","timestamp":"2024-12-03T14:05:00.000Z","provider":"openai","modelId":"gpt-4o"}
 ```
 
-### ThinkingLevelChangeEntry
+### 思考级别变更条目
 
-Emitted when the user changes the thinking/reasoning level.
+当用户改变思维/推理水平时发出。
 
 ```json
 {"type":"thinking_level_change","id":"e5f6g7h8","parentId":"d4e5f6g7","timestamp":"2024-12-03T14:06:00.000Z","thinkingLevel":"high"}
 ```
 
-### CompactionEntry
+### 压缩入口
 
-Created when context is compacted. Stores a summary of earlier messages.
+压缩上下文时创建。存储早期消息的摘要。
 
 ```json
 {"type":"compaction","id":"f6g7h8i9","parentId":"e5f6g7h8","timestamp":"2024-12-03T14:10:00.000Z","summary":"User discussed X, Y, Z...","firstKeptEntryId":"c3d4e5f6","tokensBefore":50000}
 ```
 
-Optional fields:
-- `details`: Implementation-specific data (e.g., `{ readFiles: string[], modifiedFiles: string[] }` for default, or custom data for extensions)
-- `fromHook`: `true` if generated by an extension, `false`/`undefined` if pi-generated (legacy field name)
+可选字段：
+- `details`：特定于实现的数据（例如，默认的 `{ readFiles: string[], modifiedFiles: string[] }` 或扩展的自定义数据）
+- `fromHook`：如果由扩展生成，则为 `true`；如果由 pi 生成，则为 `false`/`undefined`（旧字段名称）
 
 ### BranchSummaryEntry
 
-Created when switching branches via `/tree` with an LLM generated summary of the left branch up to the common ancestor. Captures context from the abandoned path.
+当通过 `/tree` 切换分支时创建，并使用 LLM 生成的左分支到共同祖先的摘要。从废弃的路径捕获上下文。
 
 ```json
 {"type":"branch_summary","id":"g7h8i9j0","parentId":"a1b2c3d4","timestamp":"2024-12-03T14:15:00.000Z","fromId":"f6g7h8i9","summary":"Branch explored approach A..."}
 ```
 
-Optional fields:
-- `details`: File tracking data (`{ readFiles: string[], modifiedFiles: string[] }`) for default, or custom data for extensions
-- `fromHook`: `true` if generated by an extension, `false`/`undefined` if pi-generated (legacy field name)
+可选字段：
+- `details`：默认的文件跟踪数据 (`{ readFiles: string[], modifiedFiles: string[] }`)，或扩展的自定义数据
+- `fromHook`：如果由扩展生成，则为 `true`；如果由 pi 生成，则为 `false`/`undefined`（旧字段名称）
 
-### CustomEntry
+### 自定义条目
 
-Extension state persistence. Does NOT participate in LLM context.
+用于持久化扩展状态，不会进入 LLM 上下文。
 
 ```json
 {"type":"custom","id":"h8i9j0k1","parentId":"g7h8i9j0","timestamp":"2024-12-03T14:20:00.000Z","customType":"my-extension","data":{"count":42}}
 ```
 
-Use `customType` to identify your extension's entries on reload.
+使用 `customType` 来识别重新加载时的扩展条目。
 
-### CustomMessageEntry
+### 自定义消息条目
 
-Extension-injected messages that DO participate in LLM context.
+确实参与 LLM 上下文的扩展注入消息。
 
 ```json
 {"type":"custom_message","id":"i9j0k1l2","parentId":"h8i9j0k1","timestamp":"2024-12-03T14:25:00.000Z","customType":"my-extension","content":"Injected context...","display":true}
 ```
 
-Fields:
-- `content`: String or `(TextContent | ImageContent)[]` (same as UserMessage)
-- `display`: `true` = show in TUI with distinct styling, `false` = hidden
-- `details`: Optional extension-specific metadata (not sent to LLM)
+字段：
+- `content`：字符串或 `(TextContent | ImageContent)[]`（与 `UserMessage` 相同）
+- `display`：`true` 表示在 TUI 中以独特样式显示，`false` 表示隐藏
+- `details`：可选的扩展特定元数据（不发送到 LLM）
 
-### LabelEntry
+### 标签条目
 
-User-defined bookmark/marker on an entry.
+条目上的用户定义书签/标记。
 
 ```json
 {"type":"label","id":"j0k1l2m3","parentId":"i9j0k1l2","timestamp":"2024-12-03T14:30:00.000Z","targetId":"a1b2c3d4","label":"checkpoint-1"}
 ```
 
-Set `label` to `undefined` to clear a label.
+将 `label` 设置为 `undefined` 以清除标签。
 
-### SessionInfoEntry
+### 会话信息条目
 
-Session metadata (e.g., user-defined display name). Set via `/name` command or `pi.setSessionName()` in extensions.
+会话元数据（例如，用户定义的显示名称）。通过 `/name` 命令或扩展中的 `pi.setSessionName()` 设置。
 
 ```json
 {"type":"session_info","id":"k1l2m3n4","parentId":"j0k1l2m3","timestamp":"2024-12-03T14:35:00.000Z","name":"Refactor auth module"}
 ```
 
-The session name is displayed in the session selector (`/resume`) instead of the first message when set.
+设置后，会话名称将显示在会话选择器 (`/resume`) 中，而不是第一条消息中。
 
-## Tree Structure
+## 树结构
 
-Entries form a tree:
-- First entry has `parentId: null`
-- Each subsequent entry points to its parent via `parentId`
-- Branching creates new children from an earlier entry
-- The "leaf" is the current position in the tree
+条目形成树：
+- 第一个条目的 `parentId` 为 `null`
+- 每个后续条目通过 `parentId` 指向其父条目
+- 分支从较早的条目创建新的子项
+- “叶子”是树中的当前位置
 
+```text
+[user msg] -> [assistant] -> [user msg] -> [assistant] -> [user msg]   (current leaf)
+                                           \
+                                            -> [branch_summary] -> [user msg]   (alternate branch)
 ```
-[user msg] ─── [assistant] ─── [user msg] ─── [assistant] ─┬─ [user msg] ← current leaf
-                                                            │
-                                                            └─ [branch_summary] ─── [user msg] ← alternate branch
-```
 
-## Context Building
+## 上下文构建
 
-`buildSessionContext()` walks from the current leaf to the root, producing the message list for the LLM:
+`buildSessionContext()` 从当前叶走到根，生成 LLM 的消息列表：
 
-1. Collects all entries on the path
-2. Extracts current model and thinking level settings
-3. If a `CompactionEntry` is on the path:
-   - Emits the summary first
-   - Then messages from `firstKeptEntryId` to compaction
-   - Then messages after compaction
-4. Converts `BranchSummaryEntry` and `CustomMessageEntry` to appropriate message formats
+1. 收集路径上的所有条目
+2. 提取当前模型和思维水平设置
+3. 如果 `CompactionEntry` 在路径上：
+   - 首先发出摘要
+   - 然后从 `firstKeptEntryId` 发送消息进行压缩
+   - 然后是压缩后的消息
+4. 将 `BranchSummaryEntry` 和 `CustomMessageEntry` 转换为适当的消息格式
 
-## Parsing Example
+## 解析示例
 
 ```typescript
 import { readFileSync } from "fs";
@@ -358,55 +358,55 @@ for (const line of lines) {
 }
 ```
 
-## SessionManager API
+## 会话管理器 API
 
-Key methods for working with sessions programmatically.
+以编程方式处理会话的关键方法。
 
-### Static Creation Methods
-- `SessionManager.create(cwd, sessionDir?)` - New session
-- `SessionManager.open(path, sessionDir?)` - Open existing session file
-- `SessionManager.continueRecent(cwd, sessionDir?)` - Continue most recent or create new
-- `SessionManager.inMemory(cwd?)` - No file persistence
-- `SessionManager.forkFrom(sourcePath, targetCwd, sessionDir?)` - Fork session from another project
+### 静态创建方法
+- `SessionManager.create(cwd, sessionDir?)` - 创建新会话
+- `SessionManager.open(path, sessionDir?)` - 打开现有会话文件
+- `SessionManager.continueRecent(cwd, sessionDir?)` - 继续最近一次会话，若没有则新建
+- `SessionManager.inMemory(cwd?)` - 无文件持久性
+- `SessionManager.forkFrom(sourcePath, targetCwd, sessionDir?)` - 从另一个项目的会话分叉
 
-### Static Listing Methods
-- `SessionManager.list(cwd, sessionDir?, onProgress?)` - List sessions for a directory
-- `SessionManager.listAll(onProgress?)` - List all sessions across all projects
+### 静态列表方法
+- `SessionManager.list(cwd, sessionDir?, onProgress?)` - 列出目录的会话
+- `SessionManager.listAll(onProgress?)` - 列出所有项目的所有会话
 
-### Instance Methods - Session Management
-- `newSession(options?)` - Start a new session (options: `{ parentSession?: string }`)
-- `setSessionFile(path)` - Switch to a different session file
-- `createBranchedSession(leafId)` - Extract branch to new session file
+### 实例方法 - 会话管理
+- `newSession(options?)` - 开始新会话（选项：`{ parentSession?: string }`）
+- `setSessionFile(path)` - 切换到不同的会话文件
+- `createBranchedSession(leafId)` - 将分支提取到新会话文件
 
-### Instance Methods - Appending (all return entry ID)
-- `appendMessage(message)` - Add message
-- `appendThinkingLevelChange(level)` - Record thinking change
-- `appendModelChange(provider, modelId)` - Record model change
-- `appendCompaction(summary, firstKeptEntryId, tokensBefore, details?, fromHook?)` - Add compaction
-- `appendCustomEntry(customType, data?)` - Extension state (not in context)
-- `appendSessionInfo(name)` - Set session display name
-- `appendCustomMessageEntry(customType, content, display, details?)` - Extension message (in context)
-- `appendLabelChange(targetId, label)` - Set/clear label
+### 实例方法 - 追加（全部返回条目 ID）
+- `appendMessage(message)` - 添加消息
+- `appendThinkingLevelChange(level)` - 记录思维变化
+- `appendModelChange(provider, modelId)` - 记录模型变更
+- `appendCompaction(summary, firstKeptEntryId, tokensBefore, details?, fromHook?)` - 添加压缩摘要
+- `appendCustomEntry(customType, data?)` - 扩展状态（不在上下文中）
+- `appendSessionInfo(name)` - 设置会话显示名称
+- `appendCustomMessageEntry(customType, content, display, details?)` - 扩展消息（在上下文中）
+- `appendLabelChange(targetId, label)` - 设置/清除标签
 
-### Instance Methods - Tree Navigation
-- `getLeafId()` - Current position
-- `getLeafEntry()` - Get current leaf entry
-- `getEntry(id)` - Get entry by ID
-- `getBranch(fromId?)` - Walk from entry to root
-- `getTree()` - Get full tree structure
-- `getChildren(parentId)` - Get direct children
-- `getLabel(id)` - Get label for entry
-- `branch(entryId)` - Move leaf to earlier entry
-- `resetLeaf()` - Reset leaf to null (before any entries)
-- `branchWithSummary(entryId, summary, details?, fromHook?)` - Branch with context summary
+### 实例方法 - 树导航
+- `getLeafId()` - 当前位置
+- `getLeafEntry()` - 获取当前叶条目
+- `getEntry(id)` - 通过 ID 获取条目
+- `getBranch(fromId?)` - 从指定条目回溯到根
+- `getTree()` - 获取完整的树结构
+- `getChildren(parentId)` - 获取直接子节点
+- `getLabel(id)` - 获取条目标签
+- `branch(entryId)` - 将当前叶子移动到较早的条目
+- `resetLeaf()` - 将叶子重置为空（在任何条目之前）
+- `branchWithSummary(entryId, summary, details?, fromHook?)` - 带有上下文摘要的分支
 
-### Instance Methods - Context & Info
-- `buildSessionContext()` - Get messages, thinkingLevel, and model for LLM
-- `getEntries()` - All entries (excluding header)
-- `getHeader()` - Session header metadata
-- `getSessionName()` - Get display name from latest session_info entry
-- `getCwd()` - Working directory
-- `getSessionDir()` - Session storage directory
-- `getSessionId()` - Session UUID
-- `getSessionFile()` - Session file path (undefined for in-memory)
-- `isPersisted()` - Whether session is saved to disk
+### 实例方法 - 上下文和信息
+- `buildSessionContext()` - 获取发送给 LLM 的消息、思考级别和模型
+- `getEntries()` - 所有条目（不包括标题）
+- `getHeader()` - 会话标头元数据
+- `getSessionName()` - 从最新的 session_info 条目获取显示名称
+- `getCwd()` - 工作目录
+- `getSessionDir()` - 会话存储目录
+- `getSessionId()` - 会话 UUID
+- `getSessionFile()` - 会话文件路径（内存中未定义）
+- `isPersisted()` - 会话是否保存到磁盘

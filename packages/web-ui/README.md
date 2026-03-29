@@ -1,28 +1,28 @@
 # @mariozechner/pi-web-ui
 
-Reusable web UI components for building AI chat interfaces powered by [@mariozechner/pi-ai](../ai) and [@mariozechner/pi-agent-core](../agent).
+可重用的 Web UI 组件，用于构建由 [@mariozechner/pi-ai](../ai) 和 [@mariozechner/pi-agent-core](../agent) 提供支持的 AI 聊天界面。
 
-Built with [mini-lit](https://github.com/badlogic/mini-lit) web components and Tailwind CSS v4.
+使用 [mini-lit](https://github.com/badlogic/mini-lit) Web 组件和 Tailwind CSS v4 构建。
 
-## Features
+＃＃ 特征
 
-- **Chat UI**: Complete interface with message history, streaming, and tool execution
-- **Tools**: JavaScript REPL, document extraction, and artifacts (HTML, SVG, Markdown, etc.)
-- **Attachments**: PDF, DOCX, XLSX, PPTX, images with preview and text extraction
-- **Artifacts**: Interactive HTML, SVG, Markdown with sandboxed execution
-- **Storage**: IndexedDB-backed storage for sessions, API keys, and settings
-- **CORS Proxy**: Automatic proxy handling for browser environments
-- **Custom Providers**: Support for Ollama, LM Studio, vLLM, and OpenAI-compatible APIs
+- **聊天 UI**：包含消息历史记录、流式传输和工具执行的完整界面
+- **工具**：JavaScript REPL、文档提取和工件（HTML、SVG、Markdown 等）
+- **附件**：PDF、DOCX、XLSX、PPTX、带预览和文本提取的图像
+- **工件**：交互式 HTML、SVG、带有沙盒执行的 Markdown
+- **存储**：IndexedDB 支持的会话、API 密钥和设置存储
+- **CORS 代理**：浏览器环境的自动代理处理
+- **自定义提供商**：支持 Ollama、LM Studio、vLLM 和 OpenAI 兼容 API
 
-## Installation
+＃＃ 安装
 
 ```bash
 npm install @mariozechner/pi-web-ui @mariozechner/pi-agent-core @mariozechner/pi-ai
 ```
 
-## Quick Start
+## 快速入门
 
-See the [example](./example) directory for a complete working application.
+请参阅 [example](./example) 目录以获取完整的工作应用程序。
 
 ```typescript
 import { Agent } from '@mariozechner/pi-agent-core';
@@ -84,36 +84,10 @@ await chatPanel.setAgent(agent, {
 document.body.appendChild(chatPanel);
 ```
 
-## Architecture
+＃＃ 建筑学
 
 ```
-┌─────────────────────────────────────────────────────┐
-│                    ChatPanel                        │
-│  ┌─────────────────────┐  ┌─────────────────────┐   │
-│  │   AgentInterface    │  │   ArtifactsPanel    │   │
-│  │  (messages, input)  │  │  (HTML, SVG, MD)    │   │
-│  └─────────────────────┘  └─────────────────────┘   │
-└─────────────────────────────────────────────────────┘
-                          │
-                          ▼
-┌─────────────────────────────────────────────────────┐
-│              Agent (from pi-agent-core)             │
-│  - State management (messages, model, tools)        │
-│  - Event emission (agent_start, message_update, ...)│
-│  - Tool execution                                   │
-└─────────────────────────────────────────────────────┘
-                          │
-                          ▼
-┌─────────────────────────────────────────────────────┐
-│                   AppStorage                        │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐             │
-│  │ Settings │ │ Provider │ │ Sessions │             │
-│  │  Store   │ │Keys Store│ │  Store   │             │
-│  └──────────┘ └──────────┘ └──────────┘             │
-│                     │                               │
-│              IndexedDBStorageBackend                │
-└─────────────────────────────────────────────────────┘
-```
+鈹屸攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹?鈹?                   ChatPanel                        鈹?鈹? 鈹屸攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹? 鈹屸攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹?  鈹?鈹? 鈹?  AgentInterface    鈹? 鈹?  ArtifactsPanel    鈹?  鈹?鈹? 鈹? (messages, input)  鈹? 鈹? (HTML, SVG, MD)    鈹?  鈹?鈹? 鈹斺攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹? 鈹斺攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹?  鈹?鈹斺攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹?                          鈹?                          鈻?鈹屸攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹?鈹?             Agent (from pi-agent-core)             鈹?鈹? - State management (messages, model, tools)        鈹?鈹? - Event emission (agent_start, message_update, ...)鈹?鈹? - Tool execution                                   鈹?鈹斺攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹?                          鈹?                          鈻?鈹屸攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹?鈹?                  AppStorage                        鈹?鈹? 鈹屸攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹?鈹屸攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹?鈹屸攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹?            鈹?鈹? 鈹?Settings 鈹?鈹?Provider 鈹?鈹?Sessions 鈹?            鈹?鈹? 鈹? Store   鈹?鈹侹eys Store鈹?鈹? Store   鈹?            鈹?鈹? 鈹斺攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹?鈹斺攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹?鈹斺攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹?            鈹?鈹?                    鈹?                              鈹?鈹?             IndexedDBStorageBackend                鈹?鈹斺攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹?```
 
 ## Components
 
@@ -123,24 +97,24 @@ High-level chat interface with built-in artifacts panel.
 
 ```typescript
 const chatPanel = new ChatPanel();
-await chatPanel.setAgent(agent, {
-  // Prompt for API key when needed
+等待 chatPanel.setAgent(代理, {
+  // 需要时提示输入 API 密钥
   onApiKeyRequired: async (provider) => ApiKeyPromptDialog.prompt(provider),
 
-  // Hook before sending messages
-  onBeforeSend: async () => { /* save draft, etc. */ },
+// 发送消息之前进行钩子
+  onBeforeSend: async () => { /* 保存草稿等 */ },
 
-  // Handle cost display click
-  onCostClick: () => { /* show cost breakdown */ },
+// 处理费用显示点击
+  onCostClick: () => { /* 显示费用明细 */ },
 
-  // Custom sandbox URL for browser extensions
+// 浏览器扩展的自定义沙箱 URL
   sandboxUrlProvider: () => chrome.runtime.getURL('sandbox.html'),
 
-  // Add custom tools
-  toolsFactory: (agent, agentInterface, artifactsPanel, runtimeProvidersFactory) => {
+// 添加自定义工具
+  工具工厂：（代理，代理接口，artifactsPanel，runtimeProvidersFactory）=> {
     const replTool = createJavaScriptReplTool();
     replTool.runtimeProvidersFactory = runtimeProvidersFactory;
-    return [replTool];
+    返回[replTool]；
   },
 });
 ```
@@ -151,8 +125,8 @@ Lower-level chat interface for custom layouts.
 
 ```typescript
 const chat = document.createElement('agent-interface') as AgentInterface;
-chat.session = agent;
-chat.enableAttachments = true;
+chat.session = 代理；
+聊天.enableAttachments = true;
 chat.enableModelSelector = true;
 chat.enableThinkingSelector = true;
 chat.onApiKeyRequired = async (provider) => { /* ... */ };
@@ -169,42 +143,42 @@ Properties:
 ### Agent (from pi-agent-core)
 
 ```typescript
-import { Agent } from '@mariozechner/pi-agent-core';
+从“@mariozechner/pi-agent-core”导入{代理}；
 
-const agent = new Agent({
-  initialState: {
-    model: getModel('anthropic', 'claude-sonnet-4-5-20250929'),
-    systemPrompt: 'You are helpful.',
-    thinkingLevel: 'off',
-    messages: [],
-    tools: [],
+常量代理 = 新代理({
+  初始状态：{
+    模型： getModel('anthropic', 'claude-sonnet-4-5-20250929'),
+    系统提示：'你很有帮助。',
+    思考级别：“关闭”，
+    消息：[]，
+    工具：[]、
   },
-  convertToLlm: defaultConvertToLlm,
+  ConvertToLlm：默认ConvertToLlm，
 });
 
-// Events
-agent.subscribe((event) => {
-  switch (event.type) {
-    case 'agent_start': // Agent loop started
-    case 'agent_end':   // Agent loop finished
-    case 'turn_start':  // LLM call started
-    case 'turn_end':    // LLM call finished
-    case 'message_start':
-    case 'message_update': // Streaming update
-    case 'message_end':
-      break;
+// 事件
+代理. 订阅((事件) => {
+  开关（事件类型）{
+    case 'agent_start': // 代理循环开始
+    case 'agent_end': // 代理循环完成
+    case 'turn_start': // LLM 调用开始
+    case 'turn_end': // LLM 调用完成
+    案例“message_start”：
+    case 'message_update': // 流式更新
+    案例“消息结束”：
+      打破；
   }
 });
 
-// Send message
-await agent.prompt('Hello!');
-await agent.prompt({ role: 'user-with-attachments', content: 'Check this', attachments, timestamp: Date.now() });
+// 发送消息
+等待agent.prompt('你好！');
+wait agent.prompt({ role: 'user-with-attachments', content: '检查此',attachments, timestamp: Date.now() });
 
-// Control
-agent.abort();
-agent.setModel(newModel);
-agent.setThinkingLevel('medium');
-agent.setTools([...]);
+// 控制
+代理.abort();
+代理.setModel(newModel);
+agent.setThinkingLevel('中');
+代理.setTools([...]);
 agent.queueMessage(customMessage);
 ```
 
@@ -215,16 +189,16 @@ agent.queueMessage(customMessage);
 User message with file attachments:
 
 ```typescript
-const message: UserMessageWithAttachments = {
-  role: 'user-with-attachments',
-  content: 'Analyze this document',
-  attachments: [pdfAttachment],
-  timestamp: Date.now(),
+常量消息：UserMessageWithAttachments = {
+  角色：“带附件的用户”，
+  content: '分析此文档',
+  附件：[pdf附件]，
+  时间戳：Date.now(),
 };
 
-// Type guard
-if (isUserMessageWithAttachments(msg)) {
-  console.log(msg.attachments);
+// 类型保护
+如果（isUserMessageWithAttachments（msg））{
+  console.log(msg.附件);
 }
 ```
 
@@ -233,17 +207,17 @@ if (isUserMessageWithAttachments(msg)) {
 For session persistence of artifacts:
 
 ```typescript
-const artifact: ArtifactMessage = {
-  role: 'artifact',
-  action: 'create', // or 'update', 'delete'
-  filename: 'chart.html',
-  content: '<div>...</div>',
-  timestamp: new Date().toISOString(),
+常量工件：ArtifactMessage = {
+  角色：'神器'，
+  action: '创建', // 或 '更新', '删除'
+  文件名：'chart.html',
+  内容：'<div>...</div>',
+  时间戳：new Date().toISOString(),
 };
 
-// Type guard
-if (isArtifactMessage(msg)) {
-  console.log(msg.filename);
+// 类型保护
+如果 (isArtifactMessage(msg)) {
+  console.log(msg.文件名);
 }
 ```
 
@@ -252,33 +226,33 @@ if (isArtifactMessage(msg)) {
 Extend via declaration merging:
 
 ```typescript
-interface SystemNotification {
-  role: 'system-notification';
-  message: string;
-  level: 'info' | 'warning' | 'error';
-  timestamp: string;
+接口系统通知{
+  角色：“系统通知”；
+  消息：字符串；
+  级别： '信息' | '警告' | '错误';
+  时间戳：字符串；
 }
 
-declare module '@mariozechner/pi-agent-core' {
-  interface CustomAgentMessages {
-    'system-notification': SystemNotification;
+声明模块 '@mariozechner/pi-agent-core' {
+  接口自定义代理消息{
+    '系统通知': SystemNotification;
   }
 }
 
-// Register renderer
-registerMessageRenderer('system-notification', {
-  render: (msg) => html`<div class="alert">${msg.message}</div>`,
+// 注册渲染器
+registerMessageRenderer('系统通知', {
+  渲染：(msg) => html`<div class="alert">${msg.message}</div>`,
 });
 
-// Extend convertToLlm
-function myConvertToLlm(messages: AgentMessage[]): Message[] {
-  const processed = messages.map((m) => {
-    if (m.role === 'system-notification') {
-      return { role: 'user', content: `<system>${m.message}</system>`, timestamp: Date.now() };
+// 扩展convertToLlm
+函数 myConvertToLlm(消息: AgentMessage[]): Message[] {
+  const 已处理 = messages.map((m) => {
+    if (m.role === '系统通知') {
+      return { 角色：'用户'，内容：`<system>${m.message}</system>`，时间戳：Date.now() };
     }
-    return m;
+    返回米；
   });
-  return defaultConvertToLlm(processed);
+  返回defaultConvertToLlm（已处理）；
 }
 ```
 
@@ -287,12 +261,12 @@ function myConvertToLlm(messages: AgentMessage[]): Message[] {
 `convertToLlm` transforms app messages to LLM-compatible format:
 
 ```typescript
-import { defaultConvertToLlm, convertAttachments } from '@mariozechner/pi-web-ui';
+从'@mariozechner/pi-web-ui'导入{defaultConvertToLlm，convertAttachments}；
 
-// defaultConvertToLlm handles:
-// - UserMessageWithAttachments → user message with image/text content blocks
-// - ArtifactMessage → filtered out (UI-only)
-// - Standard messages (user, assistant, toolResult) → passed through
+// defaultConvertToLlm 句柄：
+// - UserMessageWithAttachments ∫带有图像/文本内容块的用户消息
+// - ArtifactMessage 鈫？过滤掉（仅限 UI）
+// - 标准消息（用户、助手、工具结果）→传递
 ```
 
 ## Tools
@@ -302,14 +276,14 @@ import { defaultConvertToLlm, convertAttachments } from '@mariozechner/pi-web-ui
 Execute JavaScript in a sandboxed browser environment:
 
 ```typescript
-import { createJavaScriptReplTool } from '@mariozechner/pi-web-ui';
+从“@mariozechner/pi-web-ui”导入{createJavaScriptReplTool}；
 
 const replTool = createJavaScriptReplTool();
 
-// Configure runtime providers for artifact/attachment access
+// 配置运行时提供程序以进行工件/附件访问
 replTool.runtimeProvidersFactory = () => [
-  new AttachmentsRuntimeProvider(attachments),
-  new ArtifactsRuntimeProvider(artifactsPanel, agent, true), // read-write
+  新的 AttachmentsRuntimeProvider（附件），
+  new ArtifactsRuntimeProvider(artifactsPanel, agent, true), // 读写
 ];
 
 agent.setTools([replTool]);
@@ -320,7 +294,7 @@ agent.setTools([replTool]);
 Extract text from documents at URLs:
 
 ```typescript
-import { createExtractDocumentTool } from '@mariozechner/pi-web-ui';
+从“@mariozechner/pi-web-ui”导入{createExtractDocumentTool}；
 
 const extractTool = createExtractDocumentTool();
 extractTool.corsProxyUrl = 'https://corsproxy.io/?';
@@ -334,22 +308,22 @@ Built into ArtifactsPanel, supports: HTML, SVG, Markdown, text, JSON, images, PD
 
 ```typescript
 const artifactsPanel = new ArtifactsPanel();
-artifactsPanel.agent = agent;
+artifactsPanel.agent = 代理；
 
-// The tool is available as artifactsPanel.tool
+// 该工具可作为artifactsPanel.tool使用
 agent.setTools([artifactsPanel.tool]);
 ```
 
 ### Custom Tool Renderers
 
 ```typescript
-import { registerToolRenderer, type ToolRenderer } from '@mariozechner/pi-web-ui';
+从 '@mariozechner/pi-web-ui' 导入 { registerToolRenderer, type ToolRenderer };
 
 const myRenderer: ToolRenderer = {
-  render(params, result, isStreaming) {
-    return {
-      content: html`<div>...</div>`,
-      isCustom: false, // true = no card wrapper
+  渲染（参数，结果，isStreaming）{
+    返回{
+      内容：html`<div>...</div>`，
+      isCustom: false, // true = 没有卡片包装器
     };
   },
 };
@@ -362,45 +336,45 @@ registerToolRenderer('my_tool', myRenderer);
 ### Setup
 
 ```typescript
-import {
-  AppStorage,
-  IndexedDBStorageBackend,
-  SettingsStore,
-  ProviderKeysStore,
-  SessionsStore,
-  CustomProvidersStore,
-  setAppStorage,
-  getAppStorage,
-} from '@mariozechner/pi-web-ui';
+导入{
+  应用程序存储，
+  索引数据库存储后端，
+  设置商店，
+  提供商密钥存储区，
+  会话商店，
+  自定义提供商商店，
+  设置应用程序存储，
+  获取应用程序存储，
+来自“@mariozechner/pi-web-ui”；
 
-// Create stores
-const settings = new SettingsStore();
-const providerKeys = new ProviderKeysStore();
-const sessions = new SessionsStore();
+// 创建商店
+const 设置 = new SettingsStore();
+const ProviderKeys = new ProviderKeysStore();
+const 会话 = new SessionsStore();
 const customProviders = new CustomProvidersStore();
 
-// Create backend with all store configs
+// 使用所有商店配置创建后端
 const backend = new IndexedDBStorageBackend({
-  dbName: 'my-app',
-  version: 1,
-  stores: [
-    settings.getConfig(),
-    providerKeys.getConfig(),
-    sessions.getConfig(),
+  dbName: '我的应用程序',
+  版本：1，
+  商店：[
+    设置.getConfig(),
+    提供者Keys.getConfig(),
+    会话.getConfig(),
     SessionsStore.getMetadataConfig(),
-    customProviders.getConfig(),
+    CustomProviders.getConfig(),
   ],
 });
 
-// Wire stores to backend
-settings.setBackend(backend);
-providerKeys.setBackend(backend);
-sessions.setBackend(backend);
-customProviders.setBackend(backend);
+// 将存储连接到后端
+设置.setBackend(后端);
+providerKeys.setBackend(后端);
+会话.setBackend(后端);
+customProviders.setBackend(后端);
 
-// Create and set global storage
-const storage = new AppStorage(settings, providerKeys, sessions, customProviders, backend);
-setAppStorage(storage);
+// 创建并设置全局存储
+const storage = new AppStorage(设置、providerKeys、会话、customProviders、后端);
+设置应用程序存储（存储）；
 ```
 
 ### SettingsStore
@@ -408,9 +382,9 @@ setAppStorage(storage);
 Key-value settings:
 
 ```typescript
-await storage.settings.set('proxy.enabled', true);
-await storage.settings.set('proxy.url', 'https://proxy.example.com');
-const enabled = await storage.settings.get<boolean>('proxy.enabled');
+等待 storage.settings.set('proxy.enabled', true);
+等待 storage.settings.set('proxy.url', 'https://proxy.example.com');
+const启用=等待storage.settings.get<boolean>('proxy.enabled');
 ```
 
 ### ProviderKeysStore
@@ -418,9 +392,9 @@ const enabled = await storage.settings.get<boolean>('proxy.enabled');
 API keys by provider:
 
 ```typescript
-await storage.providerKeys.set('anthropic', 'sk-ant-...');
-const key = await storage.providerKeys.get('anthropic');
-const providers = await storage.providerKeys.list();
+等待 storage.providerKeys.set('anthropic', 'sk-ant-...');
+const key = wait storage.providerKeys.get('anthropic');
+const 提供者 = 等待 storage.providerKeys.list();
 ```
 
 ### SessionsStore
@@ -428,21 +402,21 @@ const providers = await storage.providerKeys.list();
 Chat sessions with metadata:
 
 ```typescript
-// Save session
-await storage.sessions.save(sessionData, metadata);
+// 保存会话
+等待 storage.sessions.save(sessionData, 元数据);
 
-// Load session
-const data = await storage.sessions.get(sessionId);
-const metadata = await storage.sessions.getMetadata(sessionId);
+// 加载会话
+const data =等待storage.sessions.get(sessionId);
+const 元数据 = 等待 storage.sessions.getMetadata(sessionId);
 
-// List sessions (sorted by lastModified)
-const allMetadata = await storage.sessions.getAllMetadata();
+// 列出会话（按最后修改时间排序）
+const allMetadata = 等待 storage.sessions.getAllMetadata();
 
-// Update title
-await storage.sessions.updateTitle(sessionId, 'New Title');
+// 更新标题
+等待 storage.sessions.updateTitle(sessionId, '新标题');
 
-// Delete
-await storage.sessions.delete(sessionId);
+// 删除
+等待存储.sessions.delete(sessionId);
 ```
 
 ### CustomProvidersStore
@@ -450,15 +424,15 @@ await storage.sessions.delete(sessionId);
 Custom LLM providers:
 
 ```typescript
-const provider: CustomProvider = {
+常量提供者：CustomProvider = {
   id: crypto.randomUUID(),
-  name: 'My Ollama',
-  type: 'ollama',
-  baseUrl: 'http://localhost:11434',
+  名称：“我的奥拉玛”，
+  类型：'olama'，
+  基本网址：'http://localhost:11434',
 };
 
-await storage.customProviders.set(provider);
-const all = await storage.customProviders.getAll();
+等待 storage.customProviders.set(provider);
+const all = wait storage.customProviders.getAll();
 ```
 
 ## Attachments
@@ -466,28 +440,28 @@ const all = await storage.customProviders.getAll();
 Load and process files:
 
 ```typescript
-import { loadAttachment, type Attachment } from '@mariozechner/pi-web-ui';
+从'@mariozechner/pi-web-ui'导入{loadAttachment，类型附件}；
 
-// From File input
-const file = inputElement.files[0];
-const attachment = await loadAttachment(file);
+// 从文件输入
+const 文件 = inputElement.files[0];
+const 附件 = 等待 loadAttachment(文件);
 
-// From URL
-const attachment = await loadAttachment('https://example.com/doc.pdf');
+// 来自网址
+const Attachment = 等待 loadAttachment('https://example.com/doc.pdf');
 
-// From ArrayBuffer
-const attachment = await loadAttachment(arrayBuffer, 'document.pdf');
+// 来自数组缓冲区
+const Attachment =等待loadAttachment(arrayBuffer, 'document.pdf');
 
-// Attachment structure
-interface Attachment {
-  id: string;
-  type: 'image' | 'document';
-  fileName: string;
-  mimeType: string;
-  size: number;
-  content: string;        // base64 encoded
-  extractedText?: string; // For documents
-  preview?: string;       // base64 preview image
+// 附件结构
+接口附件{
+  id：字符串；
+  类型：'图像'| '文档';
+  文件名：字符串；
+  mime类型：字符串；
+  尺寸：数量；
+  内容：字符串；        //base64编码
+  提取文本？：字符串； // 对于文档
+  预览？：字符串；       // Base64 预览图像
 }
 ```
 
@@ -498,18 +472,18 @@ Supported formats: PDF, DOCX, XLSX, PPTX, images, text files.
 For browser environments with CORS restrictions:
 
 ```typescript
-import { createStreamFn, shouldUseProxyForProvider, isCorsError } from '@mariozechner/pi-web-ui';
+从'@mariozechner/pi-web-ui'导入{createStreamFn，shouldUseProxyForProvider，isCorsError}；
 
-// AgentInterface auto-configures proxy from settings
-// For manual setup:
+// AgentInterface 从设置中自动配置代理
+// 对于手动设置：
 agent.streamFn = createStreamFn(async () => {
-  const enabled = await storage.settings.get<boolean>('proxy.enabled');
-  return enabled ? await storage.settings.get<string>('proxy.url') : undefined;
+  const启用=等待storage.settings.get<boolean>('proxy.enabled');
+  返回已启用？等待 storage.settings.get<string>('proxy.url') : 未定义;
 });
 
-// Providers requiring proxy:
-// - zai: always
-// - anthropic: only OAuth tokens (sk-ant-oat-*)
+// 需要代理的提供者：
+// - zai：总是
+// - anthropic：仅 OAuth 令牌 (sk-ant-oat-*)
 ```
 
 ## Dialogs
@@ -517,38 +491,38 @@ agent.streamFn = createStreamFn(async () => {
 ### SettingsDialog
 
 ```typescript
-import { SettingsDialog, ProvidersModelsTab, ProxyTab, ApiKeysTab } from '@mariozechner/pi-web-ui';
+从“@mariozechner/pi-web-ui”导入{SettingsDialog、ProvidersModelsTab、ProxyTab、ApiKeysTab}；
 
-SettingsDialog.open([
-  new ProvidersModelsTab(), // Custom providers + model list
-  new ProxyTab(),           // CORS proxy settings
-  new ApiKeysTab(),         // API keys per provider
+设置对话框.open([
+  new ProvidersModelsTab(), // 自定义提供者 + 模型列表
+  new ProxyTab(), // CORS代理设置
+  new ApiKeysTab(), // 每个提供商的 API 密钥
 ]);
 ```
 
 ### SessionListDialog
 
 ```typescript
-import { SessionListDialog } from '@mariozechner/pi-web-ui';
+从 '@mariozechner/pi-web-ui' 导入 { SessionListDialog }；
 
-SessionListDialog.open(
-  async (sessionId) => { /* load session */ },
-  (deletedId) => { /* handle deletion */ },
-);
+会话列表对话框.open(
+  async (sessionId) => { /* 加载会话 */ },
+  (deletedId) => { /* 处理删除 */ },
+）；
 ```
 
 ### ApiKeyPromptDialog
 
 ```typescript
-import { ApiKeyPromptDialog } from '@mariozechner/pi-web-ui';
+从'@mariozechner/pi-web-ui'导入{ApiKeyPromptDialog}；
 
-const success = await ApiKeyPromptDialog.prompt('anthropic');
+const success = wait ApiKeyPromptDialog.prompt('anthropic');
 ```
 
 ### ModelSelector
 
 ```typescript
-import { ModelSelector } from '@mariozechner/pi-web-ui';
+从 '@mariozechner/pi-web-ui' 导入 { ModelSelector }；
 
 ModelSelector.open(currentModel, (selectedModel) => {
   agent.setModel(selectedModel);
@@ -560,31 +534,31 @@ ModelSelector.open(currentModel, (selectedModel) => {
 Import the pre-built CSS:
 
 ```typescript
-import '@mariozechner/pi-web-ui/app.css';
+导入“@mariozechner/pi-web-ui/app.css”；
 ```
 
 Or use Tailwind with custom config:
 
 ```css
 @import '@mariozechner/mini-lit/themes/claude.css';
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@tailwind基地；
+@tailwind组件；
+@tailwind实用程序；
 ```
 
 ## Internationalization
 
 ```typescript
-import { i18n, setLanguage, translations } from '@mariozechner/pi-web-ui';
+从'@mariozechner/pi-web-ui'导入{i18n，setLanguage，翻译}；
 
-// Add translations
-translations.de = {
-  'Loading...': 'Laden...',
-  'No sessions yet': 'Noch keine Sitzungen',
+// 添加翻译
+翻译.de = {
+  '正在加载...': '满载...',
+  '还没有会议': 'Noch keine Sitzungen',
 };
 
 setLanguage('de');
-console.log(i18n('Loading...')); // "Laden..."
+console.log(i18n('正在加载...')); //“满载……”
 ```
 
 ## Examples

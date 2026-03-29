@@ -1,110 +1,110 @@
-# Minimal Slack Bot Setup (No Web Server, WebSocket Only)
+# 最小 Slack Bot 设置（无 Web 服务器，仅 WebSocket）
 
-Here's how to connect your Node.js agent to Slack using **Socket Mode** - no Express, no HTTP server, just WebSockets and callbacks.
+以下是如何使用 **Socket 模式** 将 Node.js 代理连接到 Slack - 没有 Express，没有 HTTP 服务器，只有 WebSocket 和回调。
 
 ---
 
-## 1. Dependencies
+## 1. 依赖关系
 
 ```bash
 npm install @slack/socket-mode @slack/web-api
 ```
 
-That's it. Two packages:
-- `@slack/socket-mode` - Receives events via WebSocket
-- `@slack/web-api` - Sends messages back to Slack
+就是这样。两个套餐：
+- `@slack/socket-mode` - 通过 WebSocket 接收事件
+- `@slack/web-api` - 将消息发送回 Slack
 
 ---
 
-## 2. Get Your Tokens
+## 2. 获取您的代币
 
-You need **TWO tokens**:
+您需要**两个代币**：
 
-### A. Bot Token (`xoxb-...`)
-1. Go to https://api.slack.com/apps
-2. Create app → "From scratch"
-3. Click "OAuth & Permissions" in sidebar
-4. Add **Bot Token Scopes** (all 16):
-   ```
-   app_mentions:read
-   channels:history
-   channels:join
-   channels:read
-   chat:write
-   files:read
-   files:write
-   groups:history
-   groups:read
-   im:history
-   im:read
-   im:write
-   mpim:history
-   mpim:read
-   mpim:write
-   users:read
-   ```
-5. Click "Install to Workspace" at top
-6. Copy the **Bot User OAuth Token** (starts with `xoxb-`)
+### A. 机器人代币 (`xoxb-...`)
+1. 前往https://api.slack.com/apps
+2. 创建应用程序→“从头开始”
+3. 单击侧边栏中的“OAuth 和权限”
+4. 添加 **Bot 令牌范围**（全部 16 个）：
+   ````
+   应用程序提及：已读
+   频道：历史
+   渠道：加盟
+   频道：阅读
+   聊天：写
+   文件：已读
+   文件：写入
+   组：历史
+   小组：阅读
+   我：历史
+   我：读过
+   我：写
+   MPIM：历史
+   mpim：读
+   mpim:写
+   用户：阅读
+   ````
+5. 单击顶部的“安装到工作区”
+6. 复制 **机器人用户 OAuth 令牌**（以 `xoxb-` 开头）
 
-### B. App-Level Token (`xapp-...`)
-1. In same app, click "Basic Information" in sidebar
-2. Scroll to "App-Level Tokens"
-3. Click "Generate Token and Scopes"
-4. Name it whatever (e.g., "socket-token")
-5. Add scope: `connections:write`
-6. Click "Generate"
-7. Copy the token (starts with `xapp-`)
-
----
-
-## 3. Enable Socket Mode
-
-1. Go to https://api.slack.com/apps → select your app
-2. Click **"Socket Mode"** in sidebar
-3. Toggle **"Enable Socket Mode"** to ON
-4. This routes your app's interactions and events over WebSockets instead of public HTTP endpoints
-5. Done - no webhook URL needed!
-
-**Note:** Socket Mode is intended for internal apps in development or behind a firewall. Not for apps distributed via Slack Marketplace.
+### B. 应用程序级令牌 (`xapp-...`)
+1. 在同一应用程序中，单击侧边栏中的“基本信息”
+2. 滚动到“应用程序级令牌”
+3.点击“生成令牌和范围”
+4. 随意命名（例如“socket-token”）
+5. 添加范围：`connections:write`
+6.点击“生成”
+7.复制令牌（以`xapp-`开头）
 
 ---
 
-## 4. Enable Direct Messages
+## 3. 启用套接字模式
 
-1. Go to https://api.slack.com/apps → select your app
-2. Click **"App Home"** in sidebar
-3. Scroll to **"Show Tabs"** section
-4. Check **"Allow users to send Slash commands and messages from the messages tab"**
-5. Save
+1. 前往https://api.slack.com/apps→选择您的应用程序
+2. 单击侧栏中的**“套接字模式”**
+3. 将**“启用套接字模式”**切换为“开”
+4. 这将通过 WebSocket 而不是公共 HTTP 端点来路由应用程序的交互和事件
+5. 完成 - 无需 Webhook URL！
 
----
-
-## 5. Subscribe to Events
-
-1. Go to https://api.slack.com/apps → select your app
-2. Click **"Event Subscriptions"** in sidebar
-3. Toggle **"Enable Events"** to ON
-4. **Important:** No Request URL needed (Socket Mode handles this)
-5. Expand **"Subscribe to bot events"**
-6. Click **"Add Bot User Event"** and add:
-   - `app_mention` (required - to see when bot is mentioned)
-   - `message.channels` (required - to log all channel messages for context)
-   - `message.groups` (optional - to see private channel messages)
-   - `message.im` (required - to see DMs)
-7. Click **"Save Changes"** at bottom
+**注意：** 套接字模式适用于开发中或防火墙后面的内部应用程序。不适用于通过 Slack Marketplace 分发的应用程序。
 
 ---
 
-## 6. Store Tokens
+## 4. 启用私信
 
-Create `.env` file:
+1. 前往https://api.slack.com/apps→选择您的应用程序
+2. 点击侧栏中的**“应用程序主页”**
+3. 滚动到**“显示选项卡”**部分
+4. 选中**“允许用户从消息选项卡发送 Slash 命令和消息”**
+5. 保存
+
+---
+
+## 5. 订阅事件
+
+1. 前往https://api.slack.com/apps→选择您的应用程序
+2. 点击侧栏中的**“活动订阅”**
+3. 将**“启用事件”**切换为“开”
+4. **重要：** 不需要请求 URL（套接字模式处理此问题）
+5.展开**“订阅机器人事件”**
+6. 单击**“添加机器人用户事件”**并添加：
+   - `app_mention`（必需 - 查看何时提到机器人）
+   - `message.channels`（必需 - 记录所有频道消息以了解上下文）
+   - `message.groups`（可选 - 查看私人频道消息）
+   - `message.im`（必填 - 查看 DM）
+7. 单击底部的**“保存更改”**
+
+---
+
+## 6. 存储代币
+
+创建 `.env` 文件：
 
 ```bash
 SLACK_BOT_TOKEN=xoxb-your-bot-token-here
 SLACK_APP_TOKEN=xapp-your-app-token-here
 ```
 
-Add to `.gitignore`:
+添加到`.gitignore`：
 
 ```bash
 echo ".env" >> .gitignore
@@ -112,7 +112,7 @@ echo ".env" >> .gitignore
 
 ---
 
-## 7. Minimal Working Code
+## 7. 最小工作代码
 
 ```javascript
 require('dotenv').config();
@@ -151,7 +151,7 @@ socketClient.on('app_mention', async ({ event, ack }) => {
 // Start the connection
 (async () => {
   await socketClient.start();
-  console.log('⚡️ Bot connected and listening!');
+  console.log('鈿★笍 Bot connected and listening!');
 })();
 
 // Your existing agent logic
@@ -161,7 +161,7 @@ async function yourAgentFunction(text) {
 }
 ```
 
-**That's it. No web server. Just run it:**
+**就是这样。没有网络服务器。只需运行它：**
 
 ```bash
 node bot.js
@@ -169,9 +169,9 @@ node bot.js
 
 ---
 
-## 8. Listen to ALL Events (Not Just Mentions)
+## 8. 聆听所有事件（不仅仅是提及）
 
-If you want to see every message in channels/DMs the bot is in:
+如果您想查看机器人所在的频道/DM 中的每条消息：
 
 ```javascript
 // Listen to all Slack events
@@ -194,9 +194,9 @@ socketClient.on('slack_event', async ({ event, body, ack }) => {
 
 ---
 
-## 9. Common Operations
+## 9. 常用操作
 
-### Send a message
+### 发送消息
 ```javascript
 await webClient.chat.postMessage({
   channel: 'C12345', // or channel ID from event
@@ -204,7 +204,7 @@ await webClient.chat.postMessage({
 });
 ```
 
-### Send a DM
+### 发送私信
 ```javascript
 // Open DM channel with user
 const result = await webClient.conversations.open({
@@ -218,7 +218,7 @@ await webClient.chat.postMessage({
 });
 ```
 
-### List channels
+### 列出频道
 ```javascript
 const channels = await webClient.conversations.list({
   types: 'public_channel,private_channel'
@@ -226,7 +226,7 @@ const channels = await webClient.conversations.list({
 console.log(channels.channels);
 ```
 
-### Get channel members
+### 获取频道会员
 ```javascript
 const members = await webClient.conversations.members({
   channel: 'C12345'
@@ -234,7 +234,7 @@ const members = await webClient.conversations.members({
 console.log(members.members); // Array of user IDs
 ```
 
-### Get user info
+### 获取用户信息
 ```javascript
 const user = await webClient.users.info({
   user: 'U12345'
@@ -243,14 +243,14 @@ console.log(user.user.name);
 console.log(user.user.real_name);
 ```
 
-### Join a channel
+### 加入频道
 ```javascript
 await webClient.conversations.join({
   channel: 'C12345'
 });
 ```
 
-### Upload a file
+### 上传文件
 ```javascript
 await webClient.files.uploadV2({
   channel_id: 'C12345',
@@ -262,7 +262,7 @@ await webClient.files.uploadV2({
 
 ---
 
-## 10. Complete Example with Your Agent
+## 10. 与您的代理一起完成示例
 
 ```javascript
 require('dotenv').config();
@@ -319,20 +319,20 @@ socketClient.on('app_mention', async ({ event, ack }) => {
 // Start
 (async () => {
   await socketClient.start();
-  console.log('⚡️ Agent connected to Slack!');
+  console.log('鈿★笍 Agent connected to Slack!');
 })();
 ```
 
 ---
 
-## 11. Available Event Types
+## 11. 可用的事件类型
 
-You subscribed to these in step 4:
+您在第 4 步中订阅了这些内容：
 
-- `app_mention` - Someone @mentioned the bot
-- `message` - Any message in a channel/DM the bot is in
+- `app_mention` - 有人@提到了机器人
+- `message` - 机器人所在频道/DM 中的任何消息
 
-Event object structure:
+事件对象结构：
 
 ```javascript
 {
@@ -346,54 +346,54 @@ Event object structure:
 
 ---
 
-## 12. Advantages of Socket Mode
+## 12. Socket模式的优点
 
-✅ **No web server needed** - just run your script  
-✅ **No public URL needed** - works behind firewall  
-✅ **No ngrok** - works on localhost  
-✅ **Auto-reconnect** - SDK handles connection drops  
-✅ **Event-driven** - just listen to callbacks  
-
----
-
-## 13. Disadvantages
-
-❌ Can't distribute to Slack App Directory (only for your workspace)  
-❌ Script must be running to receive messages (unlike webhooks)  
-❌ Max 10 concurrent connections per app  
+鉁？**不需要网络服务器** - 只需运行您的脚本  
+鉁？**不需要公共 URL** - 在防火墙后面工作  
+鉁？**没有 ngrok** - 在本地主机上工作  
+鉁？**自动重新连接** - SDK 处理连接丢失  
+鉁？**事件驱动** - 只听回调
 
 ---
 
-## Important Notes
+## 13. 缺点
 
-1. **You MUST call `ack()`** on every event or Slack will retry
-2. **Bot token** (`xoxb-`) is for sending messages
-3. **App token** (`xapp-`) is for receiving events via WebSocket
-4. **Connection is persistent** - your script stays running
-5. **No URL validation** needed (unlike HTTP webhooks)
+㉂？无法分发到 Slack App Directory（仅适用于您的工作区）  
+Ø 脚本必须运行才能接收消息（与 webhooks 不同）  
+Ø 每个应用程序最多 10 个并发连接
 
 ---
 
-## Troubleshooting
+## 重要提示
 
-### "invalid_auth" error
-- Check you're using the right tokens
-- Bot token for WebClient, App token for SocketModeClient
-
-### "missing_scope" error
-- Make sure you added all 16 bot scopes
-- Reinstall the app after adding scopes
-
-### Not receiving events
-- Check Socket Mode is enabled
-- Check you subscribed to events in "Event Subscriptions"
-- Make sure bot is in the channel (or use `channels:join`)
-
-### Bot doesn't respond to mentions
-- Must subscribe to `app_mention` event
-- Bot must be installed to workspace
-- Check `await ack()` is called
+1. **您必须在每个事件上调用 `ack()`** ，否则 Slack 将重试
+2. **机器人令牌** (`xoxb-`) 用于发送消息
+3. **应用程序令牌** (`xapp-`) 用于通过 WebSocket 接收事件
+4. **连接是持久的** - 您的脚本保持运行
+5. **不需要 URL 验证**（与 HTTP webhooks 不同）
 
 ---
 
-That's it. No HTTP server bullshit. Just WebSockets and callbacks.
+## 故障排除
+
+###“invalid_auth”错误
+- 检查您使用的令牌是否正确
+- WebClient 的 Bot 令牌，SocketModeClient 的应用程序令牌
+
+### “missing_scope”错误
+- 确保您添加了全部 16 个机器人范围
+- 添加范围后重新安装应用程序
+
+### 未接收事件
+- 检查套接字模式是否启用
+- 在“活动订阅”中查看您订阅的活动
+- 确保机器人在频道中（或使用 `channels:join`）
+
+### 机器人不回应提及
+- 必须订阅 `app_mention` 事件
+- 机器人必须安装到工作区
+- 检查 `await ack()` 是否被调用
+
+---
+
+就是这样。没有 HTTP 服务器废话。只是 WebSocket 和回调。

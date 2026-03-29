@@ -1,8 +1,8 @@
 # Providers
 
-Pi supports subscription-based providers via OAuth and API key providers via environment variables or auth file. For each provider, pi knows all available models. The list is updated with every pi release.
+Pi 通过 OAuth 支持基于订阅的 provider，也支持通过环境变量或认证文件配置 API key provider。对于每个 provider，pi 都维护了一份可用模型列表，并会随着每个版本发布一起更新。
 
-## Table of Contents
+## 目录
 
 - [Subscriptions](#subscriptions)
 - [API Keys](#api-keys)
@@ -11,50 +11,50 @@ Pi supports subscription-based providers via OAuth and API key providers via env
 - [Custom Providers](#custom-providers)
 - [Resolution Order](#resolution-order)
 
-## Subscriptions
+## 订阅
 
-Use `/login` in interactive mode, then select a provider:
+在交互模式下使用 `/login`，然后选择一个 provider：
 
 - Claude Pro/Max
-- ChatGPT Plus/Pro (Codex)
+- ChatGPT Plus/Pro（Codex）
 - GitHub Copilot
 - Google Gemini CLI
 - Google Antigravity
 
-Use `/logout` to clear credentials. Tokens are stored in `~/.pi/agent/auth.json` and auto-refresh when expired.
+使用 `/logout` 清除凭据。令牌存储在 `~/.pi/agent/auth.json` 中并在过期时自动刷新。
 
 ### GitHub Copilot
 
-- Press Enter for github.com, or enter your GitHub Enterprise Server domain
-- If you get "model not supported", enable it in VS Code: Copilot Chat → model selector → select model → "Enable"
+- 直接按 Enter 使用 `github.com`，或输入你的 GitHub Enterprise Server 域名
+- 如果出现“模型不受支持”，请在 VS Code 中手动启用：Copilot Chat -> 模型选择器 -> 选择模型 -> “启用”
 
 ### Google Providers
 
-- **Gemini CLI**: Standard Gemini models via Cloud Code Assist
-- **Antigravity**: Sandbox with Gemini 3, Claude, and GPT-OSS models
-- Both free with any Google account, subject to rate limits
-- For paid Cloud Code Assist: set `GOOGLE_CLOUD_PROJECT` env var
+- **Gemini CLI**：通过 Cloud Code Assist 使用标准 Gemini 模型
+- **Antigravity**：包含 Gemini 3、Claude 和 GPT-OSS 模型的沙盒环境
+- 任何 Google 帐户均可免费使用，但需遵守费率限制
+- 如果使用付费版 Cloud Code Assist：设置 `GOOGLE_CLOUD_PROJECT` 环境变量
 
 ### OpenAI Codex
 
-- Requires ChatGPT Plus or Pro subscription
-- Personal use only; for production, use the OpenAI Platform API
+- 需要 ChatGPT Plus 或 Pro 订阅
+- 仅供个人使用；对于生产，请使用 OpenAI Platform API
 
-## API Keys
+## API 密钥
 
-### Environment Variables or Auth File
+### 环境变量或认证文件
 
-Set via environment variable:
+通过环境变量设置：
 
 ```bash
 export ANTHROPIC_API_KEY=sk-ant-...
 pi
 ```
 
-| Provider | Environment Variable | `auth.json` key |
+| provider | 环境变量 | `auth.json` 键 |
 |----------|----------------------|------------------|
 | Anthropic | `ANTHROPIC_API_KEY` | `anthropic` |
-| Azure OpenAI Responses | `AZURE_OPENAI_API_KEY` | `azure-openai-responses` |
+| Azure OpenAI 响应 | `AZURE_OPENAI_API_KEY` | `azure-openai-responses` |
 | OpenAI | `OPENAI_API_KEY` | `openai` |
 | Google Gemini | `GEMINI_API_KEY` | `google` |
 | Mistral | `MISTRAL_API_KEY` | `mistral` |
@@ -67,15 +67,15 @@ pi
 | OpenCode Zen | `OPENCODE_API_KEY` | `opencode` |
 | OpenCode Go | `OPENCODE_API_KEY` | `opencode-go` |
 | Hugging Face | `HF_TOKEN` | `huggingface` |
-| Kimi For Coding | `KIMI_API_KEY` | `kimi-coding` |
+| Kimi for Coding | `KIMI_API_KEY` | `kimi-coding` |
 | MiniMax | `MINIMAX_API_KEY` | `minimax` |
-| MiniMax (China) | `MINIMAX_CN_API_KEY` | `minimax-cn` |
+| MiniMax（中国） | `MINIMAX_CN_API_KEY` | `minimax-cn` |
 
-Reference for environment variables and `auth.json` keys: [`const envMap`](https://github.com/badlogic/pi-mono/blob/main/packages/ai/src/env-api-keys.ts) in [`packages/ai/src/env-api-keys.ts`](https://github.com/badlogic/pi-mono/blob/main/packages/ai/src/env-api-keys.ts).
+环境变量和 `auth.json` 键的参考：[`packages/ai/src/env-api-keys.ts`](https://github.com/badlogic/pi-mono/blob/main/packages/ai/src/env-api-keys.ts) 中的 [`const envMap`](https://github.com/badlogic/pi-mono/blob/main/packages/ai/src/env-api-keys.ts)。
 
-#### Auth File
+#### 认证文件
 
-Store credentials in `~/.pi/agent/auth.json`:
+将凭证存储在 `~/.pi/agent/auth.json` 中：
 
 ```json
 {
@@ -87,29 +87,29 @@ Store credentials in `~/.pi/agent/auth.json`:
 }
 ```
 
-The file is created with `0600` permissions (user read/write only). Auth file credentials take priority over environment variables.
+该文件会以 `0600` 权限创建（仅当前用户可读写）。认证文件中的凭据优先于环境变量。
 
-### Key Resolution
+### Key 解析
 
-The `key` field supports three formats:
+`key` 字段支持三种格式：
 
-- **Shell command:** `"!command"` executes and uses stdout (cached for process lifetime)
+- **Shell 命令：** `"!command"` 执行并使用 stdout（在进程生命周期内缓存）
   ```json
   { "type": "api_key", "key": "!security find-generic-password -ws 'anthropic'" }
   { "type": "api_key", "key": "!op read 'op://vault/item/credential'" }
   ```
-- **Environment variable:** Uses the value of the named variable
+- **环境变量：** 使用指定变量的值
   ```json
   { "type": "api_key", "key": "MY_ANTHROPIC_KEY" }
   ```
-- **Literal value:** Used directly
+- **字面值：** 直接使用
   ```json
   { "type": "api_key", "key": "sk-ant-..." }
   ```
 
-OAuth credentials are also stored here after `/login` and managed automatically.
+OAuth 凭据也存储在 `/login` 之后并自动管理。
 
-## Cloud Providers
+## 云提供商
 
 ### Azure OpenAI
 
@@ -141,20 +141,20 @@ export AWS_BEARER_TOKEN_BEDROCK=...
 export AWS_REGION=us-west-2
 ```
 
-Also supports ECS task roles (`AWS_CONTAINER_CREDENTIALS_*`) and IRSA (`AWS_WEB_IDENTITY_TOKEN_FILE`).
+还支持 ECS 任务角色 (`AWS_CONTAINER_CREDENTIALS_*`) 和 IRSA (`AWS_WEB_IDENTITY_TOKEN_FILE`)。
 
 ```bash
 pi --provider amazon-bedrock --model us.anthropic.claude-sonnet-4-20250514-v1:0
 ```
 
-Prompt caching is enabled automatically for Claude models whose ID contains a recognizable model name (base models and system-defined inference profiles). For application inference profiles (whose ARNs don't contain the model name), set `AWS_BEDROCK_FORCE_CACHE=1` to enable cache points:
+对于 ID 中包含可识别模型名的 Claude 模型（基础模型和系统定义的 inference profile），会自动启用 prompt cache。对于应用级 inference profile（其 ARN 不包含模型名），可以设置 `AWS_BEDROCK_FORCE_CACHE=1` 来强制启用缓存点：
 
 ```bash
 export AWS_BEDROCK_FORCE_CACHE=1
 pi --provider amazon-bedrock --model arn:aws:bedrock:us-east-1:123456789012:application-inference-profile/abc123
 ```
 
-If you are connecting to a Bedrock API proxy, the following environment variables can be used:
+如果你要连接到 Bedrock API 代理，可以使用这些环境变量：
 
 ```bash
 # Set the URL for the Bedrock proxy (standard AWS SDK env var)
@@ -169,7 +169,7 @@ export AWS_BEDROCK_FORCE_HTTP1=1
 
 ### Google Vertex AI
 
-Uses Application Default Credentials:
+使用 Application Default Credentials：
 
 ```bash
 gcloud auth application-default login
@@ -177,19 +177,19 @@ export GOOGLE_CLOUD_PROJECT=your-project
 export GOOGLE_CLOUD_LOCATION=us-central1
 ```
 
-Or set `GOOGLE_APPLICATION_CREDENTIALS` to a service account key file.
+或者将 `GOOGLE_APPLICATION_CREDENTIALS` 设置为服务帐户密钥文件。
 
-## Custom Providers
+## 自定义 Providers
 
-**Via models.json:** Add Ollama, LM Studio, vLLM, or any provider that speaks a supported API (OpenAI Completions, OpenAI Responses, Anthropic Messages, Google Generative AI). See [models.md](models.md).
+**通过 `models.json`：** 添加 Ollama、LM Studio、vLLM，或任何支持对应 API 的 provider（OpenAI Completions、OpenAI Responses、Anthropic Messages、Google Generative AI）。详见 [models.md](models.md)。
 
-**Via extensions:** For providers that need custom API implementations or OAuth flows, create an extension. See [custom-provider.md](custom-provider.md) and [examples/extensions/custom-provider-gitlab-duo](../examples/extensions/custom-provider-gitlab-duo/).
+**通过扩展：** 如果某个 provider 需要自定义 API 实现或 OAuth 流程，请使用扩展。详见 [custom-provider.md](custom-provider.md) 和 [examples/extensions/custom-provider-gitlab-duo](../examples/extensions/custom-provider-gitlab-duo/)。
 
-## Resolution Order
+## 解析顺序
 
-When resolving credentials for a provider:
+解析 provider 凭据时：
 
-1. CLI `--api-key` flag
-2. `auth.json` entry (API key or OAuth token)
-3. Environment variable
-4. Custom provider keys from `models.json`
+1. CLI `--api-key` 标志
+2. `auth.json` 条目（API 密钥或 OAuth 令牌）
+3. 环境变量
+4. 来自 `models.json` 的自定义 provider key

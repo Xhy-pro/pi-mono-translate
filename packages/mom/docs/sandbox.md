@@ -1,19 +1,19 @@
-# Mom Docker Sandbox
+# 妈妈 Docker 沙盒
 
-## Overview
+＃＃ 概述
 
-Mom can run tools either directly on the host or inside a Docker container for isolation.
+Mom 可以直接在主机上运行工具，也可以在 Docker 容器内运行工具以进行隔离。
 
-## Why Docker?
+## 为什么选择 Docker？
 
-When mom runs on your machine and is accessible via Slack, anyone in your workspace could potentially:
-- Execute arbitrary commands on your machine
-- Access your files, credentials, etc.
-- Cause damage via prompt injection
+当 mom 在您的计算机上运行并可通过 Slack 访问时，您工作区中的任何人都可能：
+- 在您的机器上执行任意命令
+- 访问您的文件、凭据等。
+- 通过即时注射造成损害
 
-The Docker sandbox isolates mom's tools to a container where she can only access what you explicitly mount.
+Docker 沙箱将妈妈的工具隔离到一个容器中，她只能访问您显式挂载的内容。
 
-## Quick Start
+## 快速入门
 
 ```bash
 # 1. Create and start the container
@@ -24,24 +24,10 @@ cd packages/mom
 mom --sandbox=docker:mom-sandbox ./data
 ```
 
-## How It Works
+## 它是如何工作的
 
 ```
-┌─────────────────────────────────────────────────────┐
-│  Host                                               │
-│                                                     │
-│  mom process (Node.js)                              │
-│  ├── Slack connection                               │
-│  ├── LLM API calls                                  │
-│  └── Tool execution ──────┐                         │
-│                           ▼                         │
-│              ┌─────────────────────────┐            │
-│              │  Docker Container       │            │
-│              │  ├── bash, git, gh, etc │            │
-│              │  └── /workspace (mount) │            │
-│              └─────────────────────────┘            │
-└─────────────────────────────────────────────────────┘
-```
+鈹屸攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹?鈹? Host                                               鈹?鈹?                                                    鈹?鈹? mom process (Node.js)                              鈹?鈹? 鈹溾攢鈹€ Slack connection                               鈹?鈹? 鈹溾攢鈹€ LLM API calls                                  鈹?鈹? 鈹斺攢鈹€ Tool execution 鈹€鈹€鈹€鈹€鈹€鈹€鈹?                        鈹?鈹?                          鈻?                        鈹?鈹?             鈹屸攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹?           鈹?鈹?             鈹? Docker Container       鈹?           鈹?鈹?             鈹? 鈹溾攢鈹€ bash, git, gh, etc 鈹?           鈹?鈹?             鈹? 鈹斺攢鈹€ /workspace (mount) 鈹?           鈹?鈹?             鈹斺攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹?           鈹?鈹斺攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹?```
 
 - Mom process runs on host (handles Slack, LLM calls)
 - All tool execution (`bash`, `read`, `write`, `edit`) happens inside the container
@@ -52,20 +38,20 @@ mom --sandbox=docker:mom-sandbox ./data
 Use the provided script:
 
 ```bash
-./docker.sh create <data-dir>   # Create and start container
-./docker.sh start               # Start existing container
-./docker.sh stop                # Stop container
-./docker.sh remove              # Remove container
-./docker.sh status              # Check if running
-./docker.sh shell               # Open shell in container
+./docker.sh create <data-dir> # 创建并启动容器
+./docker.sh start # 启动现有容器
+./docker.sh stop # 停止容器
+./docker.sh remove # 删除容器
+./docker.sh status #检查是否运行
+./docker.sh shell # 在容器中打开shell
 ```
 
 Or manually:
 
 ```bash
 docker run -d --name mom-sandbox \
-  -v /path/to/mom-data:/workspace \
-  alpine:latest tail -f /dev/null
+  -v /路径/到/妈妈数据：/工作空间\
+  高山：最新尾部-f / dev / null
 ```
 
 ## Mom Manages Her Own Computer
@@ -82,13 +68,13 @@ When mom needs a tool, she installs it. When she needs credentials, she asks you
 ### Example Flow
 
 ```
-User: "@mom check the spine-runtimes repo"
-Mom:  "I need gh CLI. Installing..."
-      (runs: apk add github-cli)
-Mom:  "I need a GitHub token. Please provide one."
-User: "ghp_xxxx..."
-Mom:  (runs: echo "ghp_xxxx" | gh auth login --with-token)
-Mom:  "Done. Checking repo..."
+用户：“@mom 检查 spin-runtime 存储库”
+妈妈：“我需要 gh CLI。正在安装……”
+      （运行：apk add github-cli）
+妈妈：“我需要一个 GitHub 令牌。请提供一个。”
+用户：“ghp_xxxx...”
+妈妈：（运行：echo“ghp_xxxx”| gh auth login --with-token）
+妈妈：“完成。检查仓库……”
 ```
 
 ## Persistence
@@ -104,14 +90,14 @@ To start fresh: `./docker.sh remove && ./docker.sh create ./data`
 ## CLI Options
 
 ```bash
-# Run on host (default, no isolation)
-mom ./data
+# 在主机上运行（默认，无隔离）
+妈妈./数据
 
-# Run with Docker sandbox
+# 使用 Docker 沙箱运行
 mom --sandbox=docker:mom-sandbox ./data
 
-# Explicit host mode
-mom --sandbox=host ./data
+# 显式主机模式
+mom --sandbox=主机 ./data
 ```
 
 ## Security Considerations
@@ -136,14 +122,14 @@ mom --sandbox=host ./data
 
 ### Container not running
 ```bash
-./docker.sh status  # Check status
-./docker.sh start   # Start it
+./docker.sh status #检查状态
+./docker.sh start # 启动它
 ```
 
 ### Reset container
 ```bash
-./docker.sh remove
-./docker.sh create ./data
+./docker.sh 删除
+./docker.sh 创建./data
 ```
 
 ### Missing tools

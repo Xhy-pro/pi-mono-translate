@@ -1,19 +1,19 @@
-> pi can help you use the SDK. Ask it to build an integration for your use case.
+> pi可以帮助您使用SDK。要求它为您的用例构建集成。
 
 # SDK
 
-The SDK provides programmatic access to pi's agent capabilities. Use it to embed pi in other applications, build custom interfaces, or integrate with automated workflows.
+SDK 提供对 pi 代理功能的编程访问。使用它将 pi 嵌入其他应用程序、构建自定义界面或与自动化工作流程集成。
 
-**Example use cases:**
-- Build a custom UI (web, desktop, mobile)
-- Integrate agent capabilities into existing applications
-- Create automated pipelines with agent reasoning
-- Build custom tools that spawn sub-agents
-- Test agent behavior programmatically
+**用例示例：**
+- 构建自定义 UI（网络、桌面、移动设备）
+- 将代理功能集成到现有应用程序中
+- 通过代理推理创建自动化管道
+- 构建生成子代理的自定义工具
+- 以编程方式测试代理行为
 
-See [examples/sdk/](../examples/sdk/) for working examples from minimal to full control.
+请参阅 [examples/sdk/](../examples/sdk/) 了解从最小控制到完全控制的工作示例。
 
-## Quick Start
+## 快速入门
 
 ```typescript
 import { AuthStorage, createAgentSession, ModelRegistry, SessionManager } from "@mariozechner/pi-coding-agent";
@@ -37,21 +37,21 @@ session.subscribe((event) => {
 await session.prompt("What files are in the current directory?");
 ```
 
-## Installation
+＃＃ 安装
 
 ```bash
 npm install @mariozechner/pi-coding-agent
 ```
 
-The SDK is included in the main package. No separate installation needed.
+SDK包含在主包中。无需单独安装。
 
-## Core Concepts
+## 核心概念
 
-### createAgentSession()
+### 创建代理会话()
 
-The main factory function. Creates an `AgentSession` with configurable options.
+主要工厂功能。创建具有可配置选项的 `AgentSession`。
 
-`createAgentSession()` uses a `ResourceLoader` to supply extensions, skills, prompt templates, themes, and context files. If you do not provide one, it uses `DefaultResourceLoader` with standard discovery.
+`createAgentSession()` 使用 `ResourceLoader` 提供扩展、技能、提示模板、主题和上下文文件。如果您不提供，它将使用 `DefaultResourceLoader` 进行标准发现。
 
 ```typescript
 import { createAgentSession } from "@mariozechner/pi-coding-agent";
@@ -67,9 +67,9 @@ const { session } = await createAgentSession({
 });
 ```
 
-### AgentSession
+### 代理会话
 
-The session manages the agent lifecycle, message history, and event streaming.
+会话管理代理生命周期、消息历史记录和事件流。
 
 ```typescript
 interface AgentSession {
@@ -124,9 +124,9 @@ interface AgentSession {
 }
 ```
 
-### Prompting and Message Queueing
+### 提示和消息队列
 
-The `prompt()` method handles prompt templates, extension commands, and message sending:
+`prompt()` 方法处理提示模板、扩展命令和消息发送：
 
 ```typescript
 // Basic prompt (when not streaming)
@@ -142,12 +142,12 @@ await session.prompt("Stop and do this instead", { streamingBehavior: "steer" })
 await session.prompt("After you're done, also check X", { streamingBehavior: "followUp" });
 ```
 
-**Behavior:**
-- **Extension commands** (e.g., `/mycommand`): Execute immediately, even during streaming. They manage their own LLM interaction via `pi.sendMessage()`.
-- **File-based prompt templates** (from `.md` files): Expanded to their content before sending/queueing.
-- **During streaming without `streamingBehavior`**: Throws an error. Use `steer()` or `followUp()` directly, or specify the option.
+**行为：**
+- **扩展命令**（例如，`/mycommand`）：立即执行，即使在流式传输期间也是如此。他们通过 `pi.sendMessage()` 管理自己的法学硕士互动。
+- **基于文件的提示模板**（来自 `.md` 文件）：在发送/排队之前扩展到其内容。
+- **在没有 `streamingBehavior`** 的情况下进行流式传输：引发错误。直接使用 `steer()` 或 `followUp()`，或指定选项。
 
-For explicit queueing during streaming:
+对于流式传输期间的显式排队：
 
 ```typescript
 // Queue a steering message for delivery after the current assistant turn finishes its tool calls
@@ -157,11 +157,11 @@ await session.steer("New instruction");
 await session.followUp("After you're done, also do this");
 ```
 
-Both `steer()` and `followUp()` expand file-based prompt templates but error on extension commands (extension commands cannot be queued).
+`steer()` 和 `followUp()` 都扩展基于文件的提示模板，但扩展命令出错（扩展命令无法排队）。
 
-### Agent and AgentState
+### 代理和代理状态
 
-The `Agent` class (from `@mariozechner/pi-agent-core`) handles the core LLM interaction. Access it via `session.agent`.
+`Agent` 类（来自 `@mariozechner/pi-agent-core`）处理核心 LLM 交互。通过 `session.agent` 访问它。
 
 ```typescript
 // Access current state
@@ -180,9 +180,9 @@ session.agent.replaceMessages(messages);
 await session.agent.waitForIdle();
 ```
 
-### Events
+### 活动
 
-Subscribe to events to receive streaming output and lifecycle notifications.
+订阅事件以接收流输出和生命周期通知。
 
 ```typescript
 session.subscribe((event) => {
@@ -242,9 +242,9 @@ session.subscribe((event) => {
 });
 ```
 
-## Options Reference
+## 选项参考
 
-### Directories
+### 目录
 
 ```typescript
 const { session } = await createAgentSession({
@@ -256,30 +256,30 @@ const { session } = await createAgentSession({
 });
 ```
 
-`cwd` is used by `DefaultResourceLoader` for:
-- Project extensions (`.pi/extensions/`)
-- Project skills:
+`cwd` 被 `DefaultResourceLoader` 用于：
+- 项目扩展 (`.pi/extensions/`)
+- 项目技能：
   - `.pi/skills/`
-  - `.agents/skills/` in `cwd` and ancestor directories (up to git repo root, or filesystem root when not in a repo)
-- Project prompts (`.pi/prompts/`)
-- Context files (`AGENTS.md` walking up from cwd)
-- Session directory naming
+  - `cwd` 和祖先目录中的 `.agents/skills/` （直到 git repo 根目录，或者不在 repo 中时的文件系统根目录）
+- 项目提示 (`.pi/prompts/`)
+- 上下文文件（`AGENTS.md` 从 cwd 向上走）
+- 会话目录命名
 
-`agentDir` is used by `DefaultResourceLoader` for:
-- Global extensions (`extensions/`)
-- Global skills:
-  - `skills/` under `agentDir` (for example `~/.pi/agent/skills/`)
+`agentDir` 被 `DefaultResourceLoader` 用于：
+- 全局扩展 (`extensions/`)
+- 全球技能：
+  - `agentDir` 下的 `skills/`（例如 `~/.pi/agent/skills/`）
   - `~/.agents/skills/`
-- Global prompts (`prompts/`)
-- Global context file (`AGENTS.md`)
-- Settings (`settings.json`)
-- Custom models (`models.json`)
-- Credentials (`auth.json`)
-- Sessions (`sessions/`)
+- 全局提示 (`prompts/`)
+- 全局上下文文件 (`AGENTS.md`)
+- 设置 (`settings.json`)
+- 定制型号 (`models.json`)
+- 证书 (`auth.json`)
+- 会议 (`sessions/`)
 
-When you pass a custom `ResourceLoader`, `cwd` and `agentDir` no longer control resource discovery. They still influence session naming and tool path resolution.
+当您传递自定义 `ResourceLoader` 时，`cwd` 和 `agentDir` 不再控制资源发现。它们仍然影响会话命名和刀具路径解析。
 
-### Model
+＃＃＃ 模型
 
 ```typescript
 import { getModel } from "@mariozechner/pi-ai";
@@ -314,20 +314,20 @@ const { session } = await createAgentSession({
 });
 ```
 
-If no model is provided:
-1. Tries to restore from session (if continuing)
-2. Uses default from settings
-3. Falls back to first available model
+如果没有提供型号：
+1. 尝试从会话中恢复（如果继续）
+2. 使用设置中的默认值
+3. 回退到第一个可用模型
 
-> See [examples/sdk/02-custom-model.ts](../examples/sdk/02-custom-model.ts)
+> 参见 [examples/sdk/02-custom-model.ts](../examples/sdk/02-custom-model.ts)
 
-### API Keys and OAuth
+### API 密钥和 OAuth
 
-API key resolution priority (handled by AuthStorage):
-1. Runtime overrides (via `setRuntimeApiKey`, not persisted)
-2. Stored credentials in `auth.json` (API keys or OAuth tokens)
-3. Environment variables (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, etc.)
-4. Fallback resolver (for custom provider keys from `models.json`)
+API密钥解析优先级（由AuthStorage处理）：
+1.运行时覆盖（通过`setRuntimeApiKey`，不持久化）
+2. `auth.json` 中存储的凭据（API 密钥或 OAuth 令牌）
+3.环境变量（`ANTHROPIC_API_KEY`、`OPENAI_API_KEY`等）
+4. 后备解析器（用于 `models.json` 的自定义提供程序密钥）
 
 ```typescript
 import { AuthStorage, ModelRegistry } from "@mariozechner/pi-coding-agent";
@@ -359,11 +359,11 @@ const { session } = await createAgentSession({
 const simpleRegistry = new ModelRegistry(authStorage);
 ```
 
-> See [examples/sdk/09-api-keys-and-oauth.ts](../examples/sdk/09-api-keys-and-oauth.ts)
+> 参见 [examples/sdk/09-api-keys-and-oauth.ts](../examples/sdk/09-api-keys-and-oauth.ts)
 
-### System Prompt
+###系统提示
 
-Use a `ResourceLoader` to override the system prompt:
+使用 `ResourceLoader` 覆盖系统提示符：
 
 ```typescript
 import { createAgentSession, DefaultResourceLoader } from "@mariozechner/pi-coding-agent";
@@ -376,9 +376,9 @@ await loader.reload();
 const { session } = await createAgentSession({ resourceLoader: loader });
 ```
 
-> See [examples/sdk/03-custom-prompt.ts](../examples/sdk/03-custom-prompt.ts)
+> 参见 [examples/sdk/03-custom-prompt.ts](../examples/sdk/03-custom-prompt.ts)
 
-### Tools
+＃＃＃ 工具
 
 ```typescript
 import {
@@ -399,9 +399,9 @@ const { session } = await createAgentSession({
 });
 ```
 
-#### Tools with Custom cwd
+#### 带有自定义 cwd 的工具
 
-**Important:** The pre-built tool instances (`readTool`, `bashTool`, etc.) use `process.cwd()` for path resolution. When you specify a custom `cwd` AND provide explicit `tools`, you must use the tool factory functions to ensure paths resolve correctly:
+**重要提示：** 预构建的工具实例（`readTool`、`bashTool` 等）使用 `process.cwd()` 进行路径解析。当您指定自定义 `cwd` 并提供显式 `tools` 时，您必须使用工具工厂函数来确保正确解析路径：
 
 ```typescript
 import {
@@ -431,16 +431,16 @@ const { session } = await createAgentSession({
 });
 ```
 
-**When you don't need factories:**
-- If you omit `tools`, pi automatically creates them with the correct `cwd`
-- If you use `process.cwd()` as your `cwd`, the pre-built instances work fine
+**当你不需要工厂时：**
+- 如果省略 `tools`，pi 会自动使用正确的 `cwd` 创建它们
+- 如果您使用 `process.cwd()` 作为 `cwd`，则预构建的实例可以正常工作
 
-**When you must use factories:**
-- When you specify both `cwd` (different from `process.cwd()`) AND `tools`
+**当你必须使用工厂时：**
+- 当您同时指定 `cwd`（不同于 `process.cwd()`）和 `tools` 时
 
-> See [examples/sdk/05-tools.ts](../examples/sdk/05-tools.ts)
+> 参见 [examples/sdk/05-tools.ts](../examples/sdk/05-tools.ts)
 
-### Custom Tools
+### 自定义工具
 
 ```typescript
 import { Type } from "@sinclair/typebox";
@@ -466,13 +466,13 @@ const { session } = await createAgentSession({
 });
 ```
 
-Custom tools passed via `customTools` are combined with extension-registered tools. Extensions loaded by the ResourceLoader can also register tools via `pi.registerTool()`.
+通过 `customTools` 传递的自定义工具与扩展注册的工具相结合。 ResourceLoader加载的扩展也可以通过`pi.registerTool()`注册工具。
 
-> See [examples/sdk/05-tools.ts](../examples/sdk/05-tools.ts)
+> 参见 [examples/sdk/05-tools.ts](../examples/sdk/05-tools.ts)
 
-### Extensions
+### 扩展
 
-Extensions are loaded by the `ResourceLoader`. `DefaultResourceLoader` discovers extensions from `~/.pi/agent/extensions/`, `.pi/extensions/`, and settings.json extension sources.
+扩展由 `ResourceLoader` 加载。 `DefaultResourceLoader` 从 `~/.pi/agent/extensions/`、`.pi/extensions/` 和 settings.json 扩展源中发现扩展。
 
 ```typescript
 import { createAgentSession, DefaultResourceLoader } from "@mariozechner/pi-coding-agent";
@@ -492,9 +492,9 @@ await loader.reload();
 const { session } = await createAgentSession({ resourceLoader: loader });
 ```
 
-Extensions can register tools, subscribe to events, add commands, and more. See [extensions.md](extensions.md) for the full API.
+扩展可以注册工具、订阅事件、添加命令等。请参阅 [extensions.md](extensions.md) 了解完整的 API。
 
-**Event Bus:** Extensions can communicate via `pi.events`. Pass a shared `eventBus` to `DefaultResourceLoader` if you need to emit or listen from outside:
+**事件总线：** 扩展可以通过 `pi.events` 进行通信。如果您需要从外部发出或监听，请将共享的 `eventBus` 传递给 `DefaultResourceLoader`：
 
 ```typescript
 import { createEventBus, DefaultResourceLoader } from "@mariozechner/pi-coding-agent";
@@ -508,9 +508,9 @@ await loader.reload();
 eventBus.on("my-extension:status", (data) => console.log(data));
 ```
 
-> See [examples/sdk/06-extensions.ts](../examples/sdk/06-extensions.ts) and [docs/extensions.md](extensions.md)
+> 请参阅 [examples/sdk/06-extensions.ts](../examples/sdk/06-extensions.ts) 和 [docs/extensions.md](extensions.md)
 
-### Skills
+### 技能
 
 ```typescript
 import {
@@ -538,9 +538,9 @@ await loader.reload();
 const { session } = await createAgentSession({ resourceLoader: loader });
 ```
 
-> See [examples/sdk/04-skills.ts](../examples/sdk/04-skills.ts)
+> 参见 [examples/sdk/04-skills.ts](../examples/sdk/04-skills.ts)
 
-### Context Files
+### 上下文文件
 
 ```typescript
 import { createAgentSession, DefaultResourceLoader } from "@mariozechner/pi-coding-agent";
@@ -558,9 +558,9 @@ await loader.reload();
 const { session } = await createAgentSession({ resourceLoader: loader });
 ```
 
-> See [examples/sdk/07-context-files.ts](../examples/sdk/07-context-files.ts)
+> 参见 [examples/sdk/07-context-files.ts](../examples/sdk/07-context-files.ts)
 
-### Slash Commands
+### 斜线命令
 
 ```typescript
 import {
@@ -587,11 +587,11 @@ await loader.reload();
 const { session } = await createAgentSession({ resourceLoader: loader });
 ```
 
-> See [examples/sdk/08-prompt-templates.ts](../examples/sdk/08-prompt-templates.ts)
+> 参见 [examples/sdk/08-prompt-templates.ts](../examples/sdk/08-prompt-templates.ts)
 
-### Session Management
+### 会话管理
 
-Sessions use a tree structure with `id`/`parentId` linking, enabling in-place branching.
+会话使用具有 `id`/`parentId` 链接的树结构，从而实现就地分支。
 
 ```typescript
 import { createAgentSession, SessionManager } from "@mariozechner/pi-coding-agent";
@@ -637,7 +637,7 @@ const { session } = await createAgentSession({
 });
 ```
 
-**SessionManager tree API:**
+**SessionManager 树 API：**
 
 ```typescript
 const sm = SessionManager.open("/path/to/session.jsonl");
@@ -660,9 +660,9 @@ sm.branchWithSummary(id, "Summary...");  // Branch with context summary
 sm.createBranchedSession(leafId);       // Extract path to new file
 ```
 
-> See [examples/sdk/11-sessions.ts](../examples/sdk/11-sessions.ts) and [docs/session.md](session.md)
+> 请参阅 [examples/sdk/11-sessions.ts](../examples/sdk/11-sessions.ts) 和 [docs/session.md](session.md)
 
-### Settings Management
+### 设置管理
 
 ```typescript
 import { createAgentSession, SettingsManager, SessionManager } from "@mariozechner/pi-coding-agent";
@@ -692,30 +692,30 @@ const { session } = await createAgentSession({
 });
 ```
 
-**Static factories:**
-- `SettingsManager.create(cwd?, agentDir?)` - Load from files
-- `SettingsManager.inMemory(settings?)` - No file I/O
+**静态工厂：**
+- `SettingsManager.create(cwd?, agentDir?)` - 从文件加载
+- `SettingsManager.inMemory(settings?)` - 无文件 I/O
 
-**Project-specific settings:**
+**项目特定设置：**
 
-Settings load from two locations and merge:
-1. Global: `~/.pi/agent/settings.json`
-2. Project: `<cwd>/.pi/settings.json`
+设置从两个位置加载并合并：
+1.全局：`~/.pi/agent/settings.json`
+2. 项目：`<cwd>/.pi/settings.json`
 
-Project overrides global. Nested objects merge keys. Setters modify global settings by default.
+项目覆盖全局。嵌套对象合并键。默认情况下，设置者会修改全局设置。
 
-**Persistence and error handling semantics:**
+**持久性和错误处理语义：**
 
-- Settings getters/setters are synchronous for in-memory state.
-- Setters enqueue persistence writes asynchronously.
-- Call `await settingsManager.flush()` when you need a durability boundary (for example, before process exit or before asserting file contents in tests).
-- `SettingsManager` does not print settings I/O errors. Use `settingsManager.drainErrors()` and report them in your app layer.
+- 设置 getter/setter 与内存状态同步。
+- Setters 入队持久化异步写入。
+- 当您需要持久性边界时（例如，在进程退出之前或在测试中断言文件内容之前），请调用 `await settingsManager.flush()` 。
+- `SettingsManager` 不打印设置 I/O 错误。使用 `settingsManager.drainErrors()` 并在您的应用程序层中报告它们。
 
-> See [examples/sdk/10-settings.ts](../examples/sdk/10-settings.ts)
+> 参见 [examples/sdk/10-settings.ts](../examples/sdk/10-settings.ts)
 
-## ResourceLoader
+## 资源加载器
 
-Use `DefaultResourceLoader` to discover extensions, skills, prompts, themes, and context files.
+使用 `DefaultResourceLoader` 发现扩展、技能、提示、主题和上下文文件。
 
 ```typescript
 import {
@@ -736,9 +736,9 @@ const themes = loader.getThemes();
 const contextFiles = loader.getAgentsFiles().agentsFiles;
 ```
 
-## Return Value
+## 返回值
 
-`createAgentSession()` returns:
+`createAgentSession()` 返回：
 
 ```typescript
 interface CreateAgentSessionResult {
@@ -759,7 +759,7 @@ interface LoadExtensionsResult {
 }
 ```
 
-## Complete Example
+## 完整示例
 
 ```typescript
 import { getModel } from "@mariozechner/pi-ai";
@@ -842,13 +842,13 @@ session.subscribe((event) => {
 await session.prompt("Get status and list files.");
 ```
 
-## Run Modes
+## 运行模式
 
-The SDK exports run mode utilities for building custom interfaces on top of `createAgentSession()`:
+SDK 导出运行模式实用程序，用于在 `createAgentSession()` 之上构建自定义接口：
 
-### InteractiveMode
+### 交互模式
 
-Full TUI interactive mode with editor, chat history, and all built-in commands:
+完整的 TUI 交互模式，包含编辑器、聊天历史记录和所有内置命令：
 
 ```typescript
 import { createAgentSession, InteractiveMode } from "@mariozechner/pi-coding-agent";
@@ -867,9 +867,9 @@ const mode = new InteractiveMode(session, {
 await mode.run();  // Blocks until exit
 ```
 
-### runPrintMode
+### 运行打印模式
 
-Single-shot mode: send prompts, output result, exit:
+单次模式：发送提示、输出结果、退出：
 
 ```typescript
 import { createAgentSession, runPrintMode } from "@mariozechner/pi-coding-agent";
@@ -884,9 +884,9 @@ await runPrintMode(session, {
 });
 ```
 
-### runRpcMode
+### 运行Rpc模式
 
-JSON-RPC mode for subprocess integration:
+用于子流程集成的 JSON-RPC 模式：
 
 ```typescript
 import { createAgentSession, runRpcMode } from "@mariozechner/pi-coding-agent";
@@ -896,32 +896,32 @@ const { session } = await createAgentSession({ /* ... */ });
 await runRpcMode(session);  // Reads JSON commands from stdin, writes to stdout
 ```
 
-See [RPC documentation](rpc.md) for the JSON protocol.
+请参阅 [RPC documentation](rpc.md) 了解 JSON 协议。
 
-## RPC Mode Alternative
+## RPC 模式替代方案
 
-For subprocess-based integration without building with the SDK, use the CLI directly:
+对于不使用 SDK 构建的基于子流程的集成，请直接使用 CLI：
 
 ```bash
 pi --mode rpc --no-session
 ```
 
-See [RPC documentation](rpc.md) for the JSON protocol.
+请参阅 [RPC documentation](rpc.md) 了解 JSON 协议。
 
-The SDK is preferred when:
-- You want type safety
-- You're in the same Node.js process
-- You need direct access to agent state
-- You want to customize tools/extensions programmatically
+在以下情况下首选 SDK：
+- 你想要类型安全
+- 你们在同一个 Node.js 进程中
+- 您需要直接访问代理状态
+- 您想以编程方式自定义工具/扩展
 
-RPC mode is preferred when:
-- You're integrating from another language
-- You want process isolation
-- You're building a language-agnostic client
+在以下情况下首选 RPC 模式：
+- 您正在从另一种语言进行集成
+- 你想要进程隔离
+- 您正在构建一个与语言无关的客户端
 
-## Exports
+## 出口
 
-The main entry point exports:
+主要入口点导出：
 
 ```typescript
 // Factory
@@ -965,4 +965,4 @@ type PromptTemplate
 type Tool
 ```
 
-For extension types, see [extensions.md](extensions.md) for the full API.
+对于扩展类型，请参阅 [extensions.md](extensions.md) 了解完整的 API。

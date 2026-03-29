@@ -1,32 +1,32 @@
-# SDK Examples
+# SDK 示例
 
-Programmatic usage of pi-coding-agent via `createAgentSession()`.
+通过 `createAgentSession()` 以编程方式使用 pi-coding-agent。
 
-## Examples
+## 示例
 
-| File | Description |
+| 文件 | 描述 |
 |------|-------------|
-| `01-minimal.ts` | Simplest usage with all defaults |
-| `02-custom-model.ts` | Select model and thinking level |
-| `03-custom-prompt.ts` | Replace or modify system prompt |
-| `04-skills.ts` | Discover, filter, or replace skills |
-| `05-tools.ts` | Built-in tools, custom tools |
-| `06-extensions.ts` | Logging, blocking, result modification |
-| `07-context-files.ts` | AGENTS.md context files |
-| `08-slash-commands.ts` | File-based slash commands |
-| `09-api-keys-and-oauth.ts` | API key resolution, OAuth config |
-| `10-settings.ts` | Override compaction, retry, terminal settings |
-| `11-sessions.ts` | In-memory, persistent, continue, list sessions |
-| `12-full-control.ts` | Replace everything, no discovery |
+| `01-minimal.ts` | 所有默认值的最简单用法 |
+| `02-custom-model.ts` | 选择模型和思维水平 |
+| `03-custom-prompt.ts` | 替换或修改系统提示 |
+| `04-skills.ts` | 发现、过滤或替换技能 |
+| `05-tools.ts` | 内置工具、自定义工具 |
+| `06-extensions.ts` | 记录、阻塞、结果修改 |
+| `07-context-files.ts` | AGENTS.md 上下文文件 |
+| `08-slash-commands.ts` | 基于文件的斜杠命令 |
+| `09-api-keys-and-oauth.ts` | API 密钥解析、OAuth 配置 |
+| `10-settings.ts` | 覆盖压缩、重试、终端设置 |
+| `11-sessions.ts` | 内存中、持久、继续、列出会话 |
+| `12-full-control.ts` | 全部替换，没有发现 |
 
-## Running
+＃＃ 跑步
 
 ```bash
 cd packages/coding-agent
 npx tsx examples/sdk/01-minimal.ts
 ```
 
-## Quick Reference
+## 快速参考
 
 ```typescript
 import { getModel } from "@mariozechner/pi-ai";
@@ -104,23 +104,23 @@ session.subscribe((event) => {
 await session.prompt("Hello");
 ```
 
-## Options
+＃＃ 选项
 
-| Option | Default | Description |
+| 选项 | 默认 | 描述 |
 |--------|---------|-------------|
-| `authStorage` | `AuthStorage.create()` | Credential storage |
-| `modelRegistry` | `new ModelRegistry(authStorage)` | Model registry |
-| `cwd` | `process.cwd()` | Working directory |
-| `agentDir` | `~/.pi/agent` | Config directory |
-| `model` | From settings/first available | Model to use |
-| `thinkingLevel` | From settings/"off" | off, low, medium, high |
-| `tools` | `codingTools` | Built-in tools |
-| `customTools` | `[]` | Additional tool definitions |
-| `resourceLoader` | DefaultResourceLoader | Resource loader for extensions, skills, prompts, themes |
-| `sessionManager` | `SessionManager.create(cwd)` | Persistence |
-| `settingsManager` | `SettingsManager.create(cwd, agentDir)` | Settings overrides |
+| `authStorage` | `AuthStorage.create()` | 凭证存储 |
+| `modelRegistry` | `new ModelRegistry(authStorage)` | 模型注册表 |
+| `cwd` | `process.cwd()` | 工作目录 |
+| `agentDir` | `~/.pi/agent` | 配置目录 |
+| `model` | 从设置/第一个可用 | 使用型号 |
+| `thinkingLevel` | 从设置/“关闭” | 关闭、低、中、高 |
+| `tools` | `codingTools` | 内置工具 |
+| `customTools` | `[]` | 附加工具定义 |
+| `resourceLoader` | 默认资源加载器 | 扩展、技能、提示、主题的资源加载器 |
+| `sessionManager` | `SessionManager.create(cwd)` | 坚持 |
+| `settingsManager` | `SettingsManager.create(cwd, agentDir)` | 设置覆盖 |
 
-## Events
+## 活动
 
 ```typescript
 session.subscribe((event) => {

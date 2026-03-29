@@ -1,22 +1,22 @@
-> pi can create prompt templates. Ask it to build one for your workflow.
+> pi 可以创建提示模板。要求它为您的工作流程构建一个。
 
-# Prompt Templates
+# 提示模板
 
-Prompt templates are Markdown snippets that expand into full prompts. Type `/name` in the editor to invoke a template, where `name` is the filename without `.md`.
+提示模板是可扩展为完整提示的 Markdown 片段。在编辑器中键入 `/name` 以调用模板，其中 `name` 是不带 `.md` 的文件名。
 
-## Locations
+## 地点
 
-Pi loads prompt templates from:
+Pi 从以下位置加载提示模板：
 
-- Global: `~/.pi/agent/prompts/*.md`
-- Project: `.pi/prompts/*.md`
-- Packages: `prompts/` directories or `pi.prompts` entries in `package.json`
-- Settings: `prompts` array with files or directories
-- CLI: `--prompt-template <path>` (repeatable)
+- 全球：`~/.pi/agent/prompts/*.md`
+- 项目：`.pi/prompts/*.md`
+- 包：`prompts/` 目录或 `package.json` 中的 `pi.prompts` 条目
+- 设置：包含文件或目录的 `prompts` 数组
+- CLI：`--prompt-template <path>`（可重复）
 
-Disable discovery with `--no-prompt-templates`.
+使用 `--no-prompt-templates` 禁用发现。
 
-## Format
+＃＃ 格式
 
 ```markdown
 ---
@@ -28,12 +28,12 @@ Review the staged changes (`git diff --cached`). Focus on:
 - Error handling gaps
 ```
 
-- The filename becomes the command name. `review.md` becomes `/review`.
-- `description` is optional. If missing, the first non-empty line is used.
+- 文件名成为命令名。 `review.md` 变为 `/review`。
+- `description` 是可选的。如果丢失，则使用第一个非空行。
 
-## Usage
+＃＃ 用法
 
-Type `/` followed by the template name in the editor. Autocomplete shows available templates with descriptions.
+在编辑器中键入 `/`，后跟模板名称。自动完成显示可用模板和描述。
 
 ```
 /review                           # Expands review.md
@@ -41,16 +41,16 @@ Type `/` followed by the template name in the editor. Autocomplete shows availab
 /component Button "click handler" # Multiple arguments
 ```
 
-## Arguments
+## 参数
 
-Templates support positional arguments and simple slicing:
+模板支持位置参数和简单切片：
 
-- `$1`, `$2`, ... positional args
-- `$@` or `$ARGUMENTS` for all args joined
-- `${@:N}` for args from the Nth position (1-indexed)
-- `${@:N:L}` for `L` args starting at N
+- `$1`, `$2`, ... 位置参数
+- `$@` 或 `$ARGUMENTS` 对于所有加入的参数
+- `${@:N}` 用于第 N 个位置的参数（1 索引）
+- `${@:N:L}` 代表从 N 开始的 `L` 参数
 
-Example:
+例子：
 
 ```markdown
 ---
@@ -59,9 +59,9 @@ description: Create a component
 Create a React component named $1 with features: $@
 ```
 
-Usage: `/component Button "onClick handler" "disabled support"`
+用法：`/component Button "onClick handler" "disabled support"`
 
-## Loading Rules
+## 加载规则
 
-- Template discovery in `prompts/` is non-recursive.
-- If you want templates in subdirectories, add them explicitly via `prompts` settings or a package manifest.
+- `prompts/` 中的模板发现是非递归的。
+- 如果您想要子目录中的模板，请通过 `prompts` 设置或包清单显式添加它们。

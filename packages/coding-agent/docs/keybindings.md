@@ -1,137 +1,137 @@
-# Keybindings
+# 按键绑定
 
-All keyboard shortcuts can be customized via `~/.pi/agent/keybindings.json`. Each action can be bound to one or more keys.
+所有键盘快捷键都可以通过 `~/.pi/agent/keybindings.json` 自定义。每个动作都可以绑定到一个或多个键。
 
-The config file uses the same namespaced keybinding ids that pi uses internally and that extension authors use in `keyHint()` and injected `keybindings` managers.
+配置文件使用与 pi 内部使用的命名空间键绑定 ID 以及扩展作者在 `keyHint()` 和注入的 `keybindings` 管理器中使用的相同命名空间键绑定 ID。
 
-Older configs using pre-namespaced ids such as `cursorUp` or `expandTools` are migrated automatically to the namespaced ids on startup.
+使用预命名空间 ID（例如 `cursorUp` 或 `expandTools`）的旧配置会在启动时自动迁移到命名空间 ID。
 
-After editing `keybindings.json`, run `/reload` in pi to apply the changes without restarting the session.
+编辑 `keybindings.json` 后，在 pi 中运行 `/reload` 以应用更改，而无需重新启动会话。
 
-## Key Format
+## 密钥格式
 
-`modifier+key` where modifiers are `ctrl`, `shift`, `alt` (combinable) and keys are:
+`modifier+key`，其中修饰符为 `ctrl`、`shift`、`alt`（可组合），键为：
 
-- **Letters:** `a-z`
-- **Digits:** `0-9`
-- **Special:** `escape`, `esc`, `enter`, `return`, `tab`, `space`, `backspace`, `delete`, `insert`, `clear`, `home`, `end`, `pageUp`, `pageDown`, `up`, `down`, `left`, `right`
-- **Function:** `f1`-`f12`
-- **Symbols:** `` ` ``, `-`, `=`, `[`, `]`, `\`, `;`, `'`, `,`, `.`, `/`, `!`, `@`, `#`, `$`, `%`, `^`, `&`, `*`, `(`, `)`, `_`, `+`, `|`, `~`, `{`, `}`, `:`, `<`, `>`, `?`
+- **字母：** `a-z`
+- **数字：** `0-9`
+- **特殊：** `escape`、`esc`、`enter`、`return`、`tab`、`space`、`backspace`、`delete`、`insert`、`clear`、`home`、`end`、`pageUp`、`pageDown`、`up`、`down`、`left`、 `right`
+- **功能：** `f1`-`f12`
+- **符号：** `` ` ``、`-`、`=`、`[`、`]`、`\`、`;`、`'`、`,`、`.`、`/`、`!`、`@`、`#`、`$`、 `%`、`^`、`&`、`*`、`(`、`)`、`_`、`+`、`|`、`~`、`{`、`}`、`:`、`<`、`>`、`?`
 
-Modifier combinations: `ctrl+shift+x`, `alt+ctrl+x`, `ctrl+shift+alt+x`, `ctrl+1`, etc.
+修饰符组合：`ctrl+shift+x`、`alt+ctrl+x`、`ctrl+shift+alt+x`、`ctrl+1` 等。
 
-## All Actions
+## 所有操作
 
-### TUI Editor Cursor Movement
+### TUI 编辑器光标移动
 
-| Keybinding id | Default | Description |
+| 按键绑定 ID | 默认 | 描述 |
 |--------|---------|-------------|
-| `tui.editor.cursorUp` | `up` | Move cursor up |
-| `tui.editor.cursorDown` | `down` | Move cursor down |
-| `tui.editor.cursorLeft` | `left`, `ctrl+b` | Move cursor left |
-| `tui.editor.cursorRight` | `right`, `ctrl+f` | Move cursor right |
-| `tui.editor.cursorWordLeft` | `alt+left`, `ctrl+left`, `alt+b` | Move cursor word left |
-| `tui.editor.cursorWordRight` | `alt+right`, `ctrl+right`, `alt+f` | Move cursor word right |
-| `tui.editor.cursorLineStart` | `home`, `ctrl+a` | Move to line start |
-| `tui.editor.cursorLineEnd` | `end`, `ctrl+e` | Move to line end |
-| `tui.editor.jumpForward` | `ctrl+]` | Jump forward to character |
-| `tui.editor.jumpBackward` | `ctrl+alt+]` | Jump backward to character |
-| `tui.editor.pageUp` | `pageUp` | Scroll up by page |
-| `tui.editor.pageDown` | `pageDown` | Scroll down by page |
+| `tui.editor.cursorUp` | `up` | 向上移动光标 |
+| `tui.editor.cursorDown` | `down` | 向下移动光标 |
+| `tui.editor.cursorLeft` | `left`，`ctrl+b` | 向左移动光标 |
+| `tui.editor.cursorRight` | `right`，`ctrl+f` | 向右移动光标 |
+| `tui.editor.cursorWordLeft` | `alt+left`、`ctrl+left`、`alt+b` | 向左移动光标单词 |
+| `tui.editor.cursorWordRight` | `alt+right`、`ctrl+right`、`alt+f` | 向右移动光标单词 |
+| `tui.editor.cursorLineStart` | `home`，`ctrl+a` | 移至行开头 |
+| `tui.editor.cursorLineEnd` | `end`，`ctrl+e` | 移至行尾 |
+| `tui.editor.jumpForward` | `ctrl+]` | 向前跳转到角色 |
+| `tui.editor.jumpBackward` | `ctrl+alt+]` | 向后跳转到字符 |
+| `tui.editor.pageUp` | `pageUp` | 按页向上滚动 |
+| `tui.editor.pageDown` | `pageDown` | 按页向下滚动 |
 
-### TUI Editor Deletion
+### TUI 编辑器删除
 
-| Keybinding id | Default | Description |
+| 按键绑定 ID | 默认 | 描述 |
 |--------|---------|-------------|
-| `tui.editor.deleteCharBackward` | `backspace` | Delete character backward |
-| `tui.editor.deleteCharForward` | `delete`, `ctrl+d` | Delete character forward |
-| `tui.editor.deleteWordBackward` | `ctrl+w`, `alt+backspace` | Delete word backward |
-| `tui.editor.deleteWordForward` | `alt+d`, `alt+delete` | Delete word forward |
-| `tui.editor.deleteToLineStart` | `ctrl+u` | Delete to line start |
-| `tui.editor.deleteToLineEnd` | `ctrl+k` | Delete to line end |
+| `tui.editor.deleteCharBackward` | `backspace` | 向后删除字符 |
+| `tui.editor.deleteCharForward` | `delete`，`ctrl+d` | 向前删除字符 |
+| `tui.editor.deleteWordBackward` | `ctrl+w`，`alt+backspace` | 向后删除单词 |
+| `tui.editor.deleteWordForward` | `alt+d`，`alt+delete` | 删除向前的单词 |
+| `tui.editor.deleteToLineStart` | `ctrl+u` | 删除至行首 |
+| `tui.editor.deleteToLineEnd` | `ctrl+k` | 删除到行尾 |
 
-### TUI Input
+### TUI 输入
 
-| Keybinding id | Default | Description |
+| 按键绑定 ID | 默认 | 描述 |
 |--------|---------|-------------|
-| `tui.input.newLine` | `shift+enter` | Insert new line |
-| `tui.input.submit` | `enter` | Submit input |
-| `tui.input.tab` | `tab` | Tab / autocomplete |
+| `tui.input.newLine` | `shift+enter` | 插入新行 |
+| `tui.input.submit` | `enter` | 提交意见 |
+| `tui.input.tab` | `tab` | 选项卡/自动完成 |
 
-### TUI Kill Ring
+### TUI 杀环
 
-| Keybinding id | Default | Description |
+| 按键绑定 ID | 默认 | 描述 |
 |--------|---------|-------------|
-| `tui.editor.yank` | `ctrl+y` | Paste most recently deleted text |
-| `tui.editor.yankPop` | `alt+y` | Cycle through deleted text after yank |
-| `tui.editor.undo` | `ctrl+-` | Undo last edit |
+| `tui.editor.yank` | `ctrl+y` | 粘贴最近删除的文本 |
+| `tui.editor.yankPop` | `alt+y` | 猛拉后循环浏览已删除的文本 |
+| `tui.editor.undo` | `ctrl+-` | 撤消上次编辑 |
 
-### TUI Clipboard and Selection
+### TUI 剪贴板和选择
 
-| Keybinding id | Default | Description |
+| 按键绑定 ID | 默认 | 描述 |
 |--------|---------|-------------|
-| `tui.input.copy` | `ctrl+c` | Copy selection |
-| `tui.select.up` | `up` | Move selection up |
-| `tui.select.down` | `down` | Move selection down |
-| `tui.select.pageUp` | `pageUp` | Page up in list |
-| `tui.select.pageDown` | `pageDown` | Page down in list |
-| `tui.select.confirm` | `enter` | Confirm selection |
-| `tui.select.cancel` | `escape`, `ctrl+c` | Cancel selection |
+| `tui.input.copy` | `ctrl+c` | 复制选择 |
+| `tui.select.up` | `up` | 上移选择 |
+| `tui.select.down` | `down` | 向下移动选择 |
+| `tui.select.pageUp` | `pageUp` | 在列表中向上翻页 |
+| `tui.select.pageDown` | `pageDown` | 在列表中向下翻页 |
+| `tui.select.confirm` | `enter` | 确认选择 |
+| `tui.select.cancel` | `escape`，`ctrl+c` | 取消选择 |
 
-### Application
+＃＃＃ 应用
 
-| Keybinding id | Default | Description |
+| 按键绑定 ID | 默认 | 描述 |
 |--------|---------|-------------|
-| `app.interrupt` | `escape` | Cancel / abort |
-| `app.clear` | `ctrl+c` | Clear editor |
-| `app.exit` | `ctrl+d` | Exit (when editor empty) |
-| `app.suspend` | `ctrl+z` | Suspend to background |
-| `app.editor.external` | `ctrl+g` | Open in external editor (`$VISUAL` or `$EDITOR`) |
-| `app.clipboard.pasteImage` | `ctrl+v` (`alt+v` on Windows) | Paste image from clipboard |
+| `app.interrupt` | `escape` | 取消/中止 |
+| `app.clear` | `ctrl+c` | 清除编辑器 |
+| `app.exit` | `ctrl+d` | 退出（当编辑器为空时） |
+| `app.suspend` | `ctrl+z` | 暂停到后台 |
+| `app.editor.external` | `ctrl+g` | 在外部编辑器中打开（`$VISUAL` 或 `$EDITOR`） |
+| `app.clipboard.pasteImage` | `ctrl+v`（Windows 上为 `alt+v`） | 从剪贴板粘贴图像 |
 
-### Sessions
+### 会议
 
-| Keybinding id | Default | Description |
+| 按键绑定 ID | 默认 | 描述 |
 |--------|---------|-------------|
-| `app.session.new` | *(none)* | Start a new session (`/new`) |
-| `app.session.tree` | *(none)* | Open session tree navigator (`/tree`) |
-| `app.session.fork` | *(none)* | Fork current session (`/fork`) |
-| `app.session.resume` | *(none)* | Open session resume picker (`/resume`) |
-| `app.session.togglePath` | `ctrl+p` | Toggle path display |
-| `app.session.toggleSort` | `ctrl+s` | Toggle sort mode |
-| `app.session.toggleNamedFilter` | `ctrl+n` | Toggle named-only filter |
-| `app.session.rename` | `ctrl+r` | Rename session |
-| `app.session.delete` | `ctrl+d` | Delete session |
-| `app.session.deleteNoninvasive` | `ctrl+backspace` | Delete session when query is empty |
+| `app.session.new` | *（没有任何）* | 开始新会话 (`/new`) |
+| `app.session.tree` | *（没有任何）* | 打开会话树导航器 (`/tree`) |
+| `app.session.fork` | *（没有任何）* | 分叉当前会话 (`/fork`) |
+| `app.session.resume` | *（没有任何）* | 打开会话简历选择器 (`/resume`) |
+| `app.session.togglePath` | `ctrl+p` | 切换路径显示 |
+| `app.session.toggleSort` | `ctrl+s` | 切换排序模式 |
+| `app.session.toggleNamedFilter` | `ctrl+n` | 切换仅命名过滤器 |
+| `app.session.rename` | `ctrl+r` | 重命名会话 |
+| `app.session.delete` | `ctrl+d` | 删除会话 |
+| `app.session.deleteNoninvasive` | `ctrl+backspace` | 当查询为空时删除会话 |
 
-### Models and Thinking
+### 模型与思考
 
-| Keybinding id | Default | Description |
+| 按键绑定 ID | 默认 | 描述 |
 |--------|---------|-------------|
-| `app.model.select` | `ctrl+l` | Open model selector |
-| `app.model.cycleForward` | `ctrl+p` | Cycle to next model |
-| `app.model.cycleBackward` | `shift+ctrl+p` | Cycle to previous model |
-| `app.thinking.cycle` | `shift+tab` | Cycle thinking level |
-| `app.thinking.toggle` | `ctrl+t` | Collapse or expand thinking blocks |
+| `app.model.select` | `ctrl+l` | 打开模型选择器 |
+| `app.model.cycleForward` | `ctrl+p` | 循环到下一个模型 |
+| `app.model.cycleBackward` | `shift+ctrl+p` | 循环到之前的模型 |
+| `app.thinking.cycle` | `shift+tab` | 循环思维水平 |
+| `app.thinking.toggle` | `ctrl+t` | 折叠或扩展思维块 |
 
-### Display and Message Queue
+### 显示和消息队列
 
-| Keybinding id | Default | Description |
+| 按键绑定 ID | 默认 | 描述 |
 |--------|---------|-------------|
-| `app.tools.expand` | `ctrl+o` | Collapse or expand tool output |
-| `app.message.followUp` | `alt+enter` | Queue follow-up message |
-| `app.message.dequeue` | `alt+up` | Restore queued messages to editor |
+| `app.tools.expand` | `ctrl+o` | 折叠或展开工具输出 |
+| `app.message.followUp` | `alt+enter` | 队列后续消息 |
+| `app.message.dequeue` | `alt+up` | 将排队消息恢复到编辑器 |
 
-### Tree Navigation
+### 树状导航
 
-| Keybinding id | Default | Description |
+| 按键绑定 ID | 默认 | 描述 |
 |--------|---------|-------------|
-| `app.tree.foldOrUp` | `ctrl+left`, `alt+left` | Fold current branch segment, or jump to the previous segment start |
-| `app.tree.unfoldOrDown` | `ctrl+right`, `alt+right` | Unfold current branch segment, or jump to the next segment start or branch end |
+| `app.tree.foldOrUp` | `ctrl+left`，`alt+left` | 折叠当前分支段，或跳转到上一个段开始 |
+| `app.tree.unfoldOrDown` | `ctrl+right`，`alt+right` | 展开当前分支段，或跳转到下一个段起点或分支终点 |
 
-## Custom Configuration
+## 自定义配置
 
-Create `~/.pi/agent/keybindings.json`:
+创建 `~/.pi/agent/keybindings.json`：
 
 ```json
 {
@@ -141,9 +141,9 @@ Create `~/.pi/agent/keybindings.json`:
 }
 ```
 
-Each action can have a single key or an array of keys. User config overrides defaults.
+每个操作可以有一个键或一组键。用户配置覆盖默认值。
 
-### Emacs Example
+### Emacs 示例
 
 ```json
 {
@@ -159,7 +159,7 @@ Each action can have a single key or an array of keys. User config overrides def
 }
 ```
 
-### Vim Example
+### Vim 示例
 
 ```json
 {

@@ -1,61 +1,61 @@
-# tmux Setup
+# tmux 设置
 
-Pi works inside tmux, but tmux strips modifier information from certain keys by default. Without configuration, `Shift+Enter` and `Ctrl+Enter` are usually indistinguishable from plain `Enter`.
+Pi 在 tmux 内部工作，但 tmux 默认情况下会从某些键中删除修饰符信息。如果没有配置，`Shift+Enter` 和 `Ctrl+Enter` 通常与普通的 `Enter` 无法区分。
 
-## Recommended Configuration
+## 推荐配置
 
-Add to `~/.tmux.conf`:
+添加到`~/.tmux.conf`：
 
 ```tmux
 set -g extended-keys on
 set -g extended-keys-format csi-u
 ```
 
-Then restart tmux fully:
+然后完全重新启动 tmux：
 
 ```bash
 tmux kill-server
 tmux
 ```
 
-Pi requests extended key reporting automatically when Kitty keyboard protocol is not available. With `extended-keys-format csi-u`, tmux forwards modified keys in CSI-u format, which is the most reliable configuration.
+当 Kitty 键盘协议不可用时，Pi 自动请求扩展按键报告。通过 `extended-keys-format csi-u`，tmux 以 CSI-u 格式转发修改后的密钥，这是最可靠的配置。
 
-## Why `csi-u` Is Recommended
+## 为什么推荐`csi-u`
 
-With only:
+仅与：
 
 ```tmux
 set -g extended-keys on
 ```
 
-tmux defaults to `extended-keys-format xterm`. When an application requests extended key reporting, modified keys are forwarded in xterm `modifyOtherKeys` format such as:
+tmux 默认为 `extended-keys-format xterm`。当应用程序请求扩展密钥报告时，修改后的密钥将以 xterm `modifyOtherKeys` 格式转发，例如：
 
-- `Ctrl+C` → `\x1b[27;5;99~`
-- `Ctrl+D` → `\x1b[27;5;100~`
-- `Ctrl+Enter` → `\x1b[27;5;13~`
+- `Ctrl+C` 鈫?`\x1b[27;5;99~`
+- `Ctrl+D` 鈫?`\x1b[27;5;100~`
+- `Ctrl+Enter` 鈫?`\x1b[27;5;13~`
 
-With `extended-keys-format csi-u`, the same keys are forwarded as:
+使用 `extended-keys-format csi-u`，相同的密钥将转发为：
 
-- `Ctrl+C` → `\x1b[99;5u`
-- `Ctrl+D` → `\x1b[100;5u`
-- `Ctrl+Enter` → `\x1b[13;5u`
+- `Ctrl+C` 鈫?`\x1b[99;5u`
+- `Ctrl+D` 鈫?`\x1b[100;5u`
+- `Ctrl+Enter` 鈫?`\x1b[13;5u`
 
-Pi supports both formats, but `csi-u` is the recommended tmux setup.
+Pi 支持这两种格式，但 `csi-u` 是推荐的 tmux 设置。
 
-## What This Fixes
+## 这修复了什么
 
-Without tmux extended keys, modified Enter keys collapse to legacy sequences:
+如果没有 tmux 扩展键，修改后的 Enter 键会折叠为旧序列：
 
-| Key | Without extkeys | With `csi-u` |
+| 钥匙 | 没有外接键 | 与 `csi-u` |
 |-----|-----------------|--------------|
-| Enter | `\r` | `\r` |
+| 进入 | `\r` | `\r` |
 | Shift+Enter | `\r` | `\x1b[13;2u` |
 | Ctrl+Enter | `\r` | `\x1b[13;5u` |
 | Alt/Option+Enter | `\x1b\r` | `\x1b[13;3u` |
 
-This affects the default keybindings (`Enter` to submit, `Shift+Enter` for newline) and any custom keybindings using modified Enter.
+这会影响默认的键绑定（`Enter` 用于提交，`Shift+Enter` 用于换行）以及使用修改后的 Enter 的任何自定义键绑定。
 
-## Requirements
+＃＃ 要求
 
-- tmux 3.2 or later (run `tmux -V` to check)
-- A terminal emulator that supports extended keys (Ghostty, Kitty, iTerm2, WezTerm, Windows Terminal)
+- tmux 3.2 或更高版本（运行 `tmux -V` 进行检查）
+- 支持扩展键的终端模拟器（Ghostty、Kitty、iTerm2、WezTerm、Windows Terminal）

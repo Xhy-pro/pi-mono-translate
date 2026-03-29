@@ -1,14 +1,14 @@
-# JSON Event Stream Mode
+# JSON 事件流模式
 
 ```bash
 pi --mode json "Your prompt"
 ```
 
-Outputs all session events as JSON lines to stdout. Useful for integrating pi into other tools or custom UIs.
+将所有会话事件作为 JSON 行输出到 stdout。对于将 pi 集成到其他工具或自定义 UI 中非常有用。
 
-## Event Types
+## 事件类型
 
-Events are defined in [`AgentSessionEvent`](https://github.com/badlogic/pi-mono/blob/main/packages/coding-agent/src/core/agent-session.ts#L102):
+事件在 [`AgentSessionEvent`](https://github.com/badlogic/pi-mono/blob/main/packages/coding-agent/src/core/agent-session.ts#L102) 中定义：
 
 ```typescript
 type AgentSessionEvent =
@@ -19,7 +19,7 @@ type AgentSessionEvent =
   | { type: "auto_retry_end"; success: boolean; attempt: number; finalError?: string };
 ```
 
-Base events from [`AgentEvent`](https://github.com/badlogic/pi-mono/blob/main/packages/agent/src/types.ts#L179):
+来自 [`AgentEvent`](https://github.com/badlogic/pi-mono/blob/main/packages/agent/src/types.ts#L179) 的基本事件：
 
 ```typescript
 type AgentEvent =
@@ -39,28 +39,28 @@ type AgentEvent =
   | { type: "tool_execution_end"; toolCallId: string; toolName: string; result: any; isError: boolean };
 ```
 
-## Message Types
+## 消息类型
 
-Base messages from [`packages/ai/src/types.ts`](https://github.com/badlogic/pi-mono/blob/main/packages/ai/src/types.ts#L134):
-- `UserMessage` (line 134)
-- `AssistantMessage` (line 140)
-- `ToolResultMessage` (line 152)
+来自 [`packages/ai/src/types.ts`](https://github.com/badlogic/pi-mono/blob/main/packages/ai/src/types.ts#L134) 的基本消息：
+- `UserMessage`（第 134 行）
+- `AssistantMessage`（第 140 行）
+- `ToolResultMessage`（第 152 行）
 
-Extended messages from [`packages/coding-agent/src/core/messages.ts`](https://github.com/badlogic/pi-mono/blob/main/packages/coding-agent/src/core/messages.ts#L29):
-- `BashExecutionMessage` (line 29)
-- `CustomMessage` (line 46)
-- `BranchSummaryMessage` (line 55)
-- `CompactionSummaryMessage` (line 62)
+来自 [`packages/coding-agent/src/core/messages.ts`](https://github.com/badlogic/pi-mono/blob/main/packages/coding-agent/src/core/messages.ts#L29) 的扩展消息：
+- `BashExecutionMessage`（第 29 行）
+- `CustomMessage`（第 46 行）
+- `BranchSummaryMessage`（第 55 行）
+- `CompactionSummaryMessage`（第 62 行）
 
-## Output Format
+## 输出格式
 
-Each line is a JSON object. The first line is the session header:
+每一行都是一个 JSON 对象。第一行是会话头：
 
 ```json
 {"type":"session","version":3,"id":"uuid","timestamp":"...","cwd":"/path"}
 ```
 
-Followed by events as they occur:
+接下来是事件发生时的情况：
 
 ```json
 {"type":"agent_start"}
@@ -72,7 +72,7 @@ Followed by events as they occur:
 {"type":"agent_end","messages":[...]}
 ```
 
-## Example
+＃＃ 例子
 
 ```bash
 pi --mode json "List files" 2>/dev/null | jq -c 'select(.type == "message_end")'

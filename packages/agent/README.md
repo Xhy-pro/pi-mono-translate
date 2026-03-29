@@ -1,14 +1,14 @@
 # @mariozechner/pi-agent-core
 
-Stateful agent with tool execution and event streaming. Built on `@mariozechner/pi-ai`.
+具备工具执行与事件流能力的有状态 agent，构建于 `@mariozechner/pi-ai` 之上。
 
-## Installation
+## 安装
 
 ```bash
 npm install @mariozechner/pi-agent-core
 ```
 
-## Quick Start
+## 快速入门
 
 ```typescript
 import { Agent } from "@mariozechner/pi-agent-core";
@@ -31,110 +31,109 @@ agent.subscribe((event) => {
 await agent.prompt("Hello!");
 ```
 
-## Core Concepts
+## 核心概念
 
-### AgentMessage vs LLM Message
+### AgentMessage 与 LLM 消息
 
-The agent works with `AgentMessage`, a flexible type that can include:
-- Standard LLM messages (`user`, `assistant`, `toolResult`)
-- Custom app-specific message types via declaration merging
+这个 agent 使用 `AgentMessage`，它是一种更灵活的消息类型，可以包含：
+- 标准 LLM 消息（`user`、`assistant`、`toolResult`）
+- 通过声明合并扩展出来的应用自定义消息类型
 
-LLMs only understand `user`, `assistant`, and `toolResult`. The `convertToLlm` function bridges this gap by filtering and transforming messages before each LLM call.
+LLM 只理解 `user`、`assistant` 和 `toolResult`。`convertToLlm` 的作用，就是在每次调用 LLM 前过滤并转换消息。
 
-### Message Flow
+### 消息流
 
 ```
-AgentMessage[] → transformContext() → AgentMessage[] → convertToLlm() → Message[] → LLM
-                    (optional)                           (required)
+AgentMessage[] -> transformContext() -> AgentMessage[] -> convertToLlm() -> Message[] -> LLM
+                    (optional)                             (required)
 ```
 
-1. **transformContext**: Prune old messages, inject external context
-2. **convertToLlm**: Filter out UI-only messages, convert custom types to LLM format
+1. **transformContext**：修剪旧消息，注入外部上下文
+2. **convertToLlm**：过滤掉仅UI消息，将自定义类型转换为LLM格式
 
-## Event Flow
+## 事件流程
 
-The agent emits events for UI updates. Understanding the event sequence helps build responsive interfaces.
+代理发出 UI 更新事件。了解事件顺序有助于构建响应式界面。
 
-### prompt() Event Sequence
+### `prompt()` 事件序列
 
-When you call `prompt("Hello")`:
+当你调用 `prompt("Hello")` 时：
 
 ```
 prompt("Hello")
-├─ agent_start
-├─ turn_start
-├─ message_start   { message: userMessage }      // Your prompt
-├─ message_end     { message: userMessage }
-├─ message_start   { message: assistantMessage } // LLM starts responding
-├─ message_update  { message: partial... }       // Streaming chunks
-├─ message_update  { message: partial... }
-├─ message_end     { message: assistantMessage } // Complete response
-├─ turn_end        { message, toolResults: [] }
-└─ agent_end       { messages: [...] }
+-> agent_start
+-> turn_start
+-> message_start   { message: userMessage }      // your prompt
+-> message_end     { message: userMessage }
+-> message_start   { message: assistantMessage } // LLM starts responding
+-> message_update  { message: partial... }       // streaming chunks
+-> message_update  { message: partial... }
+-> message_end     { message: assistantMessage } // complete response
+-> turn_end        { message, toolResults: [] }
+-> agent_end       { messages: [...] }
 ```
 
-### With Tool Calls
+### 使用工具调用
 
-If the assistant calls tools, the loop continues:
+如果助手调用工具，则循环继续：
 
 ```
 prompt("Read config.json")
-├─ agent_start
-├─ turn_start
-├─ message_start/end  { userMessage }
-├─ message_start      { assistantMessage with toolCall }
-├─ message_update...
-├─ message_end        { assistantMessage }
-├─ tool_execution_start  { toolCallId, toolName, args }
-├─ tool_execution_update { partialResult }           // If tool streams
-├─ tool_execution_end    { toolCallId, result }
-├─ message_start/end  { toolResultMessage }
-├─ turn_end           { message, toolResults: [toolResult] }
-│
-├─ turn_start                                        // Next turn
-├─ message_start      { assistantMessage }           // LLM responds to tool result
-├─ message_update...
-├─ message_end
-├─ turn_end
-└─ agent_end
+-> agent_start
+-> turn_start
+-> message_start/end       { userMessage }
+-> message_start           { assistantMessage with toolCall }
+-> message_update...
+-> message_end             { assistantMessage }
+-> tool_execution_start    { toolCallId, toolName, args }
+-> tool_execution_update   { partialResult }            // if tool streams
+-> tool_execution_end      { toolCallId, result }
+-> message_start/end       { toolResultMessage }
+-> turn_end                { message, toolResults: [toolResult] }
+-> turn_start                                            // next turn
+-> message_start           { assistantMessage }          // LLM responds to tool result
+-> message_update...
+-> message_end
+-> turn_end
+-> agent_end
 ```
 
-Tool execution mode is configurable:
+工具执行模式是可配置的：
 
-- `parallel` (default): preflight tool calls sequentially, execute allowed tools concurrently, emit final `tool_execution_end` and `toolResult` messages in assistant source order
-- `sequential`: execute tool calls one by one, matching the historical behavior
+- `parallel`（默认）：按顺序执行工具预检，并并发运行允许执行的工具；最终仍会按助手原始调用顺序发出 `tool_execution_end` 和 `toolResult` 消息
+- `sequential`：一一执行工具调用，匹配历史行为
 
-The `beforeToolCall` hook runs after `tool_execution_start` and validated argument parsing. It can block execution. The `afterToolCall` hook runs after tool execution finishes and before `tool_execution_end` and final tool result message events are emitted.
+`beforeToolCall` 挂钩在 `tool_execution_start` 和经过验证的参数解析之后运行。它可以阻止执行。 `afterToolCall` 挂钩在工具执行完成后、`tool_execution_end` 和最终工具结果消息事件发出之前运行。
 
-When you use the `Agent` class, assistant `message_end` processing is treated as a barrier before tool preflight begins. That means `beforeToolCall` sees agent state that already includes the assistant message that requested the tool call.
+当你使用 `Agent` 类时，助手消息的 `message_end` 处理会作为工具预检开始前的屏障。这意味着 `beforeToolCall` 看到的 agent 状态里，已经包含了发起这些工具调用的助手消息。
 
-### continue() Event Sequence
+### continue() 事件序列
 
-`continue()` resumes from existing context without adding a new message. Use it for retries after errors.
+`continue()` 从现有上下文中恢复，而不添加新消息。使用它在错误后重试。
 
 ```typescript
 // After an error, retry from current state
 await agent.continue();
 ```
 
-The last message in context must be `user` or `toolResult` (not `assistant`).
+上下文中的最后一条消息必须是 `user` 或 `toolResult` （不是 `assistant`）。
 
-### Event Types
+### 事件类型
 
-| Event | Description |
+| 事件 | 描述 |
 |-------|-------------|
-| `agent_start` | Agent begins processing |
-| `agent_end` | Agent completes with all new messages |
-| `turn_start` | New turn begins (one LLM call + tool executions) |
-| `turn_end` | Turn completes with assistant message and tool results |
-| `message_start` | Any message begins (user, assistant, toolResult) |
-| `message_update` | **Assistant only.** Includes `assistantMessageEvent` with delta |
-| `message_end` | Message completes |
-| `tool_execution_start` | Tool begins |
-| `tool_execution_update` | Tool streams progress |
-| `tool_execution_end` | Tool completes |
+| `agent_start` | 代理开始处理 |
+| `agent_end` | 代理完成所有新消息 |
+| `turn_start` | 新一轮开始（一次 LLM 调用 + 工具执行） |
+| `turn_end` | 当前轮结束，并携带助手消息与工具结果 |
+| `message_start` | 任意消息开始（用户、助手、工具结果） |
+| `message_update` | **仅助手消息。** 包含 `assistantMessageEvent` 和 delta |
+| `message_end` | 消息完成 |
+| `tool_execution_start` | 工具开始 |
+| `tool_execution_update` | 工具流式执行过程中的更新 |
+| `tool_execution_end` | 工具完成 |
 
-## Agent Options
+## 代理选项
 
 ```typescript
 const agent = new Agent({
@@ -195,7 +194,7 @@ const agent = new Agent({
 });
 ```
 
-## Agent State
+## 代理状态
 
 ```typescript
 interface AgentState {
@@ -211,11 +210,11 @@ interface AgentState {
 }
 ```
 
-Access via `agent.state`. During streaming, `streamMessage` contains the partial assistant message.
+通过 `agent.state` 访问。在流式输出期间，`streamMessage` 保存当前尚未完成的助手消息片段。
 
-## Methods
+## 方法
 
-### Prompting
+### 提示
 
 ```typescript
 // Text prompt
@@ -233,7 +232,7 @@ await agent.prompt({ role: "user", content: "Hello", timestamp: Date.now() });
 await agent.continue();
 ```
 
-### State Management
+### 状态管理
 
 ```typescript
 agent.setSystemPrompt("New prompt");
@@ -249,7 +248,7 @@ agent.clearMessages();
 agent.reset();  // Clear everything
 ```
 
-### Session and Thinking Budgets
+### 会话与思考预算
 
 ```typescript
 agent.sessionId = "session-123";
@@ -262,14 +261,14 @@ agent.thinkingBudgets = {
 };
 ```
 
-### Control
+### 控制
 
 ```typescript
 agent.abort();           // Cancel current operation
 await agent.waitForIdle(); // Wait for completion
 ```
 
-### Events
+### 事件
 
 ```typescript
 const unsubscribe = agent.subscribe((event) => {
@@ -278,9 +277,9 @@ const unsubscribe = agent.subscribe((event) => {
 unsubscribe();
 ```
 
-## Steering and Follow-up
+## Steering 与 Follow-up
 
-Steering messages let you interrupt the agent while tools are running. Follow-up messages let you queue work after the agent would otherwise stop.
+Steering 消息允许你在工具运行期间打断代理。Follow-up 消息则用于在代理完成当前工作后，把下一条任务排进队列。
 
 ```typescript
 agent.setSteeringMode("one-at-a-time");
@@ -308,18 +307,18 @@ agent.clearFollowUpQueue();
 agent.clearAllQueues();
 ```
 
-Use clearSteeringQueue, clearFollowUpQueue, or clearAllQueues to drop queued messages.
+使用 `clearSteeringQueue`、`clearFollowUpQueue` 或 `clearAllQueues` 可以清空排队消息。
 
-When steering messages are detected after a turn completes:
-1. All tool calls from the current assistant message have already finished
-2. Steering messages are injected
-3. The LLM responds on the next turn
+当一轮结束后检测到 steering 消息时：
+1. 当前助手消息中的所有工具调用均已完成
+2. 注入 steering 消息
+3. LLM 在下一轮中作出回应
 
-Follow-up messages are checked only when there are no more tool calls and no steering messages. If any are queued, they are injected and another turn runs.
+只有当不再有待执行的工具调用、也没有 steering 消息时，系统才会检查 follow-up 队列。如果队列里有消息，就会注入这些消息并再运行一轮。
 
-## Custom Message Types
+## 自定义消息类型
 
-Extend `AgentMessage` via declaration merging:
+通过声明合并扩展 `AgentMessage`：
 
 ```typescript
 declare module "@mariozechner/pi-agent-core" {
@@ -332,7 +331,7 @@ declare module "@mariozechner/pi-agent-core" {
 const msg: AgentMessage = { role: "notification", text: "Info", timestamp: Date.now() };
 ```
 
-Handle custom types in `convertToLlm`:
+处理 `convertToLlm` 中的自定义类型：
 
 ```typescript
 const agent = new Agent({
@@ -343,9 +342,9 @@ const agent = new Agent({
 });
 ```
 
-## Tools
+## 工具
 
-Define tools using `AgentTool`:
+使用 `AgentTool` 定义工具：
 
 ```typescript
 import { Type } from "@sinclair/typebox";
@@ -373,9 +372,9 @@ const readFileTool: AgentTool = {
 agent.setTools([readFileTool]);
 ```
 
-### Error Handling
+### 错误处理
 
-**Throw an error** when a tool fails. Do not return error messages as content.
+**当工具失败时抛出错误**。不要将错误消息作为内容返回。
 
 ```typescript
 execute: async (toolCallId, params, signal, onUpdate) => {
@@ -387,11 +386,11 @@ execute: async (toolCallId, params, signal, onUpdate) => {
 }
 ```
 
-Thrown errors are caught by the agent and reported to the LLM as tool errors with `isError: true`.
+抛出的错误由代理捕获，并以 `isError: true` 作为工具错误报告给 LLM。
 
-## Proxy Usage
+## 代理（Proxy）用法
 
-For browser apps that proxy through a backend:
+对于通过后端代理的浏览器应用程序：
 
 ```typescript
 import { Agent, streamProxy } from "@mariozechner/pi-agent-core";
@@ -406,9 +405,9 @@ const agent = new Agent({
 });
 ```
 
-## Low-Level API
+## 低级 API
 
-For direct control without the Agent class:
+对于没有 Agent 类的直接控制：
 
 ```typescript
 import { agentLoop, agentLoopContinue } from "@mariozechner/pi-agent-core";
@@ -439,7 +438,7 @@ for await (const event of agentLoopContinue(context, config)) {
 }
 ```
 
-These low-level streams are observational. They preserve event order, but they do not wait for your async event handling to settle before later producer phases continue. If you need message processing to act as a barrier before tool preflight, use the `Agent` class instead of raw `agentLoop()` or `agentLoopContinue()`.
+这些底层流本身是可观察的。它们会保持事件顺序，但在继续进入后续生产阶段之前，不会等待异步事件处理完成。如果你需要让消息处理成为工具预检之前的明确屏障，请使用 `Agent` 类，而不是直接调用原始的 `agentLoop()` 或 `agentLoopContinue()`。
 
 ## License
 

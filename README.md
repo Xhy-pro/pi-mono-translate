@@ -1,5 +1,5 @@
 <!-- OSS_WEEKEND_START -->
-# 🏖️ OSS Weekend
+# OSS Weekend
 
 **Issue tracker reopens Monday, April 6, 2026.**
 
@@ -25,37 +25,37 @@ OSS weekend runs Friday, March 27, 2026 through Monday, April 6, 2026. New issue
 
 # Pi Monorepo
 
-> **Looking for the pi coding agent?** See **[packages/coding-agent](packages/coding-agent)** for installation and usage.
+> **在找 pi coding agent？** 安装与使用说明见 **[packages/coding-agent](packages/coding-agent)**。
 
-Tools for building AI agents and managing LLM deployments.
+这是一个围绕 AI agent 构建与 LLM 部署管理的 monorepo。
 
-## Packages
+## 包
 
 | Package | Description |
 |---------|-------------|
-| **[@mariozechner/pi-ai](packages/ai)** | Unified multi-provider LLM API (OpenAI, Anthropic, Google, etc.) |
-| **[@mariozechner/pi-agent-core](packages/agent)** | Agent runtime with tool calling and state management |
-| **[@mariozechner/pi-coding-agent](packages/coding-agent)** | Interactive coding agent CLI |
-| **[@mariozechner/pi-mom](packages/mom)** | Slack bot that delegates messages to the pi coding agent |
-| **[@mariozechner/pi-tui](packages/tui)** | Terminal UI library with differential rendering |
-| **[@mariozechner/pi-web-ui](packages/web-ui)** | Web components for AI chat interfaces |
-| **[@mariozechner/pi-pods](packages/pods)** | CLI for managing vLLM deployments on GPU pods |
+| **[@mariozechner/pi-ai](packages/ai)** | 统一的多提供商 LLM API（OpenAI、Anthropic、Google 等） |
+| **[@mariozechner/pi-agent-core](packages/agent)** | 支持工具调用与状态管理的 agent runtime |
+| **[@mariozechner/pi-coding-agent](packages/coding-agent)** | 交互式 coding agent CLI |
+| **[@mariozechner/pi-mom](packages/mom)** | 将消息委托给 pi coding agent 的 Slack 机器人 |
+| **[@mariozechner/pi-tui](packages/tui)** | 具备差异化渲染能力的终端 UI 库 |
+| **[@mariozechner/pi-web-ui](packages/web-ui)** | 面向 AI 聊天界面的 Web 组件 |
+| **[@mariozechner/pi-pods](packages/pods)** | 用于管理 GPU pod 上 vLLM 部署的 CLI |
 
-## Contributing
+## 贡献
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines and [AGENTS.md](AGENTS.md) for project-specific rules (for both humans and agents).
+贡献指南见 [CONTRIBUTING.md](CONTRIBUTING.md)，项目规则见 [AGENTS.md](AGENTS.md)。
 
-## Development
+## 开发
 
 ```bash
-npm install          # Install all dependencies
-npm run build        # Build all packages
-npm run check        # Lint, format, and type check
-./test.sh            # Run tests (skips LLM-dependent tests without API keys)
-./pi-test.sh         # Run pi from sources (can be run from any directory)
+npm install          # 安装所有依赖
+npm run build        # 构建所有包
+npm run check        # 运行 lint、format 和类型检查
+./test.sh            # 运行测试（没有 API key 时会跳过依赖 LLM 的测试）
+./pi-test.sh         # 从源码运行 pi（可在任意目录执行）
 ```
 
-> **Note:** `npm run check` requires `npm run build` to be run first. The web-ui package uses `tsc` which needs compiled `.d.ts` files from dependencies.
+> **注意：** `npm run check` 之前需要先执行 `npm run build`。`web-ui` 包使用 `tsc`，依赖其他包编译后的 `.d.ts` 文件。
 
 ## License
 
