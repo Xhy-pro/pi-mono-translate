@@ -26,7 +26,7 @@ import { DefaultPackageManager } from "./core/package-manager.js";
 import { DefaultResourceLoader } from "./core/resource-loader.js";
 import { type CreateAgentSessionOptions, createAgentSession } from "./core/sdk.js";
 import { SessionManager } from "./core/session-manager.js";
-import { SettingsManager } from "./core/settings-manager.js";
+import { type Settings, SettingsManager } from "./core/settings-manager.js";
 import { printTimings, resetTimings, time } from "./core/timings.js";
 import { allTools } from "./core/tools/index.js";
 import { runMigrations, showDeprecationWarnings } from "./migrations.js";
@@ -706,6 +706,26 @@ export async function main(args: string[]) {
 	// Pass flag values to extensions via runtime
 	for (const [name, value] of parsed.unknownFlags) {
 		extensionsResult.runtime.flagValues.set(name, value);
+	}
+
+	const runtimeSettingsOverrides: Partial<Settings> = {};
+	if (parsed.serviceMode) {
+		runtimeSettingsOverrides.serviceMode = parsed.serviceMode;
+	}
+	if (parsed.skillPolicy) {
+		runtimeSettingsOverrides.skillPolicy = parsed.skillPolicy;
+	}
+	if (parsed.toolProfile) {
+		runtimeSettingsOverrides.defaultToolProfile = parsed.toolProfile;
+	}
+	if (parsed.responseFormat) {
+		runtimeSettingsOverrides.responseFormat = parsed.responseFormat;
+	}
+	if (parsed.handoffPolicy) {
+		runtimeSettingsOverrides.handoffPolicy = parsed.handoffPolicy;
+	}
+	if (Object.keys(runtimeSettingsOverrides).length > 0) {
+		settingsManager.applyOverrides(runtimeSettingsOverrides);
 	}
 
 	if (parsed.version) {

@@ -3,6 +3,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { dirname, join } from "path";
 import lockfile from "proper-lockfile";
 import { CONFIG_DIR_NAME, getAgentDir } from "../config.js";
+import type { HandoffPolicy, ResponseFormat, ServiceMode, SkillPolicy, ToolProfile } from "./service-policy.js";
 
 export interface CompactionSettings {
 	enabled?: boolean; // default: true
@@ -65,6 +66,11 @@ export interface Settings {
 	defaultProvider?: string;
 	defaultModel?: string;
 	defaultThinkingLevel?: "off" | "minimal" | "low" | "medium" | "high" | "xhigh";
+	serviceMode?: ServiceMode;
+	skillPolicy?: SkillPolicy;
+	defaultToolProfile?: ToolProfile;
+	responseFormat?: ResponseFormat;
+	handoffPolicy?: HandoffPolicy;
 	transport?: TransportSetting; // default: "sse"
 	steeringMode?: "all" | "one-at-a-time";
 	followUpMode?: "all" | "one-at-a-time";
@@ -595,6 +601,62 @@ export class SettingsManager {
 
 	getDefaultThinkingLevel(): "off" | "minimal" | "low" | "medium" | "high" | "xhigh" | undefined {
 		return this.settings.defaultThinkingLevel;
+	}
+
+	getServiceMode(): ServiceMode {
+		return this.settings.serviceMode ?? "off";
+	}
+
+	setServiceMode(mode: ServiceMode): void {
+		this.globalSettings.serviceMode = mode;
+		this.markModified("serviceMode");
+		this.save();
+	}
+
+	getSkillPolicy(): SkillPolicy {
+		if (this.settings.skillPolicy) {
+			return this.settings.skillPolicy;
+		}
+		return this.getServiceMode() === "customer-support" ? "required" : "off";
+	}
+
+	setSkillPolicy(policy: SkillPolicy): void {
+		this.globalSettings.skillPolicy = policy;
+		this.markModified("skillPolicy");
+		this.save();
+	}
+
+	getDefaultToolProfile(): ToolProfile {
+		if (this.settings.defaultToolProfile) {
+			return this.settings.defaultToolProfile;
+		}
+		return this.getServiceMode() === "customer-support" ? "service" : "coding";
+	}
+
+	setDefaultToolProfile(profile: ToolProfile): void {
+		this.globalSettings.defaultToolProfile = profile;
+		this.markModified("defaultToolProfile");
+		this.save();
+	}
+
+	getResponseFormat(): ResponseFormat {
+		return this.settings.responseFormat ?? "text";
+	}
+
+	setResponseFormat(format: ResponseFormat): void {
+		this.globalSettings.responseFormat = format;
+		this.markModified("responseFormat");
+		this.save();
+	}
+
+	getHandoffPolicy(): HandoffPolicy {
+		return this.settings.handoffPolicy ?? "manual";
+	}
+
+	setHandoffPolicy(policy: HandoffPolicy): void {
+		this.globalSettings.handoffPolicy = policy;
+		this.markModified("handoffPolicy");
+		this.save();
 	}
 
 	setDefaultThinkingLevel(level: "off" | "minimal" | "low" | "medium" | "high" | "xhigh"): void {

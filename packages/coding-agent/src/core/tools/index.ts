@@ -106,9 +106,11 @@ import { createWriteTool, createWriteToolDefinition, writeTool, writeToolDefinit
 
 export type Tool = AgentTool<any>;
 export type ToolDef = ToolDefinition<any, any>;
+export type ToolProfileName = "coding" | "readonly" | "service";
 
 export const codingTools: Tool[] = [readTool, bashTool, editTool, writeTool];
 export const readOnlyTools: Tool[] = [readTool, grepTool, findTool, lsTool];
+export const serviceTools: Tool[] = [...readOnlyTools];
 
 export const allTools = {
 	read: readTool,
@@ -132,9 +134,19 @@ export const allToolDefinitions = {
 
 export type ToolName = keyof typeof allTools;
 
+export const TOOL_PROFILE_NAMES: Record<ToolProfileName, ToolName[]> = {
+	coding: ["read", "bash", "edit", "write"],
+	readonly: ["read", "grep", "find", "ls"],
+	service: ["read", "grep", "find", "ls"],
+};
+
 export interface ToolsOptions {
 	read?: ReadToolOptions;
 	bash?: BashToolOptions;
+}
+
+export function getToolNamesForProfile(profile: ToolProfileName): ToolName[] {
+	return [...TOOL_PROFILE_NAMES[profile]];
 }
 
 export function createCodingToolDefinitions(cwd: string, options?: ToolsOptions): ToolDef[] {
@@ -153,6 +165,10 @@ export function createReadOnlyToolDefinitions(cwd: string, options?: ToolsOption
 		createFindToolDefinition(cwd),
 		createLsToolDefinition(cwd),
 	];
+}
+
+export function createServiceToolDefinitions(cwd: string, options?: ToolsOptions): ToolDef[] {
+	return createReadOnlyToolDefinitions(cwd, options);
 }
 
 export function createAllToolDefinitions(cwd: string, options?: ToolsOptions): Record<ToolName, ToolDef> {
@@ -178,6 +194,10 @@ export function createCodingTools(cwd: string, options?: ToolsOptions): Tool[] {
 
 export function createReadOnlyTools(cwd: string, options?: ToolsOptions): Tool[] {
 	return [createReadTool(cwd, options?.read), createGrepTool(cwd), createFindTool(cwd), createLsTool(cwd)];
+}
+
+export function createServiceTools(cwd: string, options?: ToolsOptions): Tool[] {
+	return createReadOnlyTools(cwd, options);
 }
 
 export function createAllTools(cwd: string, options?: ToolsOptions): Record<ToolName, Tool> {

@@ -26,13 +26,16 @@ import {
 	createLsTool,
 	createReadOnlyTools,
 	createReadTool,
+	createServiceTools,
 	createWriteTool,
 	editTool,
 	findTool,
+	getToolNamesForProfile,
 	grepTool,
 	lsTool,
 	readOnlyTools,
 	readTool,
+	serviceTools,
 	type Tool,
 	type ToolName,
 	withFileMutationQueue,
@@ -108,11 +111,13 @@ export {
 	lsTool,
 	codingTools,
 	readOnlyTools,
+	serviceTools,
 	allTools as allBuiltInTools,
 	withFileMutationQueue,
 	// Tool factories (for custom cwd)
 	createCodingTools,
 	createReadOnlyTools,
+	createServiceTools,
 	createReadTool,
 	createBashTool,
 	createEditTool,
@@ -239,10 +244,9 @@ export async function createAgentSession(options: CreateAgentSessionOptions = {}
 		thinkingLevel = "off";
 	}
 
-	const defaultActiveToolNames: ToolName[] = ["read", "bash", "edit", "write"];
-	const initialActiveToolNames: ToolName[] = options.tools
+	const initialActiveToolNames: ToolName[] | undefined = options.tools
 		? options.tools.map((t) => t.name).filter((n): n is ToolName => n in allTools)
-		: defaultActiveToolNames;
+		: getToolNamesForProfile(settingsManager.getDefaultToolProfile());
 
 	let agent: Agent;
 

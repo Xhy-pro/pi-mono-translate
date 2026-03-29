@@ -5,6 +5,7 @@
 import type { ThinkingLevel } from "@mariozechner/pi-agent-core";
 import chalk from "chalk";
 import { APP_NAME, CONFIG_DIR_NAME, ENV_AGENT_DIR } from "../config.js";
+import type { HandoffPolicy, ResponseFormat, ServiceMode, SkillPolicy, ToolProfile } from "../core/service-policy.js";
 import { allTools, type ToolName } from "../core/tools/index.js";
 
 export type Mode = "text" | "json" | "rpc";
@@ -15,6 +16,11 @@ export interface Args {
 	apiKey?: string;
 	systemPrompt?: string;
 	appendSystemPrompt?: string;
+	serviceMode?: ServiceMode;
+	skillPolicy?: SkillPolicy;
+	toolProfile?: ToolProfile;
+	responseFormat?: ResponseFormat;
+	handoffPolicy?: HandoffPolicy;
 	thinking?: ThinkingLevel;
 	continue?: boolean;
 	resume?: boolean;
@@ -48,6 +54,11 @@ export interface Args {
 }
 
 const VALID_THINKING_LEVELS = ["off", "minimal", "low", "medium", "high", "xhigh"] as const;
+const VALID_SERVICE_MODES = ["off", "customer-support"] as const;
+const VALID_SKILL_POLICIES = ["off", "prefer", "required"] as const;
+const VALID_TOOL_PROFILES = ["coding", "readonly", "service"] as const;
+const VALID_RESPONSE_FORMATS = ["text", "json"] as const;
+const VALID_HANDOFF_POLICIES = ["manual", "auto-on-no-skill", "auto-on-low-confidence"] as const;
 
 export function isValidThinkingLevel(level: string): level is ThinkingLevel {
 	return VALID_THINKING_LEVELS.includes(level as ThinkingLevel);
@@ -86,6 +97,31 @@ export function parseArgs(args: string[], extensionFlags?: Map<string, { type: "
 			result.systemPrompt = args[++i];
 		} else if (arg === "--append-system-prompt" && i + 1 < args.length) {
 			result.appendSystemPrompt = args[++i];
+		} else if (arg === "--service-mode" && i + 1 < args.length) {
+			const mode = args[++i];
+			if (VALID_SERVICE_MODES.includes(mode as ServiceMode)) {
+				result.serviceMode = mode as ServiceMode;
+			}
+		} else if (arg === "--skill-policy" && i + 1 < args.length) {
+			const policy = args[++i];
+			if (VALID_SKILL_POLICIES.includes(policy as SkillPolicy)) {
+				result.skillPolicy = policy as SkillPolicy;
+			}
+		} else if (arg === "--tool-profile" && i + 1 < args.length) {
+			const profile = args[++i];
+			if (VALID_TOOL_PROFILES.includes(profile as ToolProfile)) {
+				result.toolProfile = profile as ToolProfile;
+			}
+		} else if (arg === "--response-format" && i + 1 < args.length) {
+			const format = args[++i];
+			if (VALID_RESPONSE_FORMATS.includes(format as ResponseFormat)) {
+				result.responseFormat = format as ResponseFormat;
+			}
+		} else if (arg === "--handoff-policy" && i + 1 < args.length) {
+			const policy = args[++i];
+			if (VALID_HANDOFF_POLICIES.includes(policy as HandoffPolicy)) {
+				result.handoffPolicy = policy as HandoffPolicy;
+			}
 		} else if (arg === "--no-session") {
 			result.noSession = true;
 		} else if (arg === "--session" && i + 1 < args.length) {
@@ -200,6 +236,11 @@ ${chalk.bold("Options:")}
   --api-key <key>                API key (defaults to env vars)
   --system-prompt <text>         System prompt (default: coding assistant prompt)
   --append-system-prompt <text>  Append text or file contents to the system prompt
+  --service-mode <mode>          Runtime profile: off (default) or customer-support
+  --skill-policy <policy>        Skill enforcement: off, prefer, required
+  --tool-profile <profile>       Default built-in tools: coding, readonly, service
+  --response-format <format>     Preferred response envelope: text (default) or json
+  --handoff-policy <policy>      Handoff behavior: manual, auto-on-no-skill, auto-on-low-confidence
   --mode <mode>                  Output mode: text (default), json, or rpc
   --print, -p                    Non-interactive mode: process prompt and exit
   --continue, -c                 Continue previous session

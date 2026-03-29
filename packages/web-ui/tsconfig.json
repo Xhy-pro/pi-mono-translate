@@ -1,7 +1,21 @@
 {
-  "extends": "../../tsconfig.base.json",
-  "compilerOptions": {
-    "noEmit": true
-  },
-  "include": ["src/**/*"]
+	"extends": "../../tsconfig.base.json",
+	"compilerOptions": {
+		"noEmit": true,
+		"lib": ["ES2022", "DOM", "DOM.Iterable"],
+		"paths": {
+			"*": ["./*"],
+			"@mariozechner/pi-ai": ["../../packages/ai/src/index.ts"],
+			"@mariozechner/pi-ai/oauth": ["../../packages/ai/src/utils/oauth/index.ts"],
+			"@mariozechner/pi-ai/bedrock-provider": ["../../packages/ai/src/bedrock-provider.ts"],
+			"@mariozechner/pi-ai/*": ["../../packages/ai/src/*"],
+			"@mariozechner/pi-agent-core": ["../../packages/agent/src/index.ts"],
+			"@mariozechner/pi-agent-core/*": ["../../packages/agent/src/*"],
+			"@mariozechner/pi-tui": ["../../packages/tui/src/index.ts"],
+			"@mariozechner/pi-tui/*": ["../../packages/tui/src/*"],
+			"@mariozechner/pi-web-ui": ["../../packages/web-ui/src/index.ts"],
+			"@mariozechner/pi-web-ui/*": ["../../packages/web-ui/src/*"]
+		}
+	},
+	"include": ["src/**/*"]
 }

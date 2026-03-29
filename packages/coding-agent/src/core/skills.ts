@@ -67,6 +67,15 @@ function addIgnoreRules(ig: IgnoreMatcher, dir: string, rootDir: string): void {
 export interface SkillFrontmatter {
 	name?: string;
 	description?: string;
+	intents?: string[];
+	examples?: string[];
+	priority?: number;
+	"allowed-tools"?: string[];
+	"required-context"?: string[];
+	"response-style"?: "short" | "standard" | "empathetic" | "strict";
+	"fallback-message"?: string;
+	"handoff-when"?: string[];
+	"kb-sources"?: string[];
 	"disable-model-invocation"?: boolean;
 	[key: string]: unknown;
 }
@@ -78,6 +87,15 @@ export interface Skill {
 	baseDir: string;
 	sourceInfo: SourceInfo;
 	disableModelInvocation: boolean;
+	intents?: string[];
+	examples?: string[];
+	priority?: number;
+	allowedTools?: string[];
+	requiredContext?: string[];
+	responseStyle?: "short" | "standard" | "empathetic" | "strict";
+	fallbackMessage?: string;
+	handoffWhen?: string[];
+	kbSources?: string[];
 }
 
 export interface LoadSkillsResult {
@@ -310,6 +328,19 @@ function loadSkillFromFile(
 			return { skill: null, diagnostics };
 		}
 
+		const intents = normalizeStringArray(frontmatter.intents);
+		const examples = normalizeStringArray(frontmatter.examples);
+		const allowedTools = normalizeStringArray(frontmatter["allowed-tools"]);
+		const requiredContext = normalizeStringArray(frontmatter["required-context"]);
+		const handoffWhen = normalizeStringArray(frontmatter["handoff-when"]);
+		const kbSources = normalizeStringArray(frontmatter["kb-sources"]);
+		const fallbackMessage = normalizeOptionalString(frontmatter["fallback-message"]);
+		const priority =
+			typeof frontmatter.priority === "number" && Number.isFinite(frontmatter.priority)
+				? frontmatter.priority
+				: undefined;
+		const responseStyle = normalizeResponseStyle(frontmatter["response-style"]);
+
 		return {
 			skill: {
 				name,
@@ -318,6 +349,15 @@ function loadSkillFromFile(
 				baseDir: skillDir,
 				sourceInfo: createSkillSourceInfo(filePath, skillDir, source),
 				disableModelInvocation: frontmatter["disable-model-invocation"] === true,
+				intents,
+				examples,
+				priority,
+				allowedTools,
+				requiredContext,
+				responseStyle,
+				fallbackMessage,
+				handoffWhen,
+				kbSources,
 			},
 			diagnostics,
 		};
@@ -326,6 +366,34 @@ function loadSkillFromFile(
 		diagnostics.push({ type: "warning", message, path: filePath });
 		return { skill: null, diagnostics };
 	}
+}
+
+function normalizeStringArray(value: unknown): string[] | undefined {
+	if (!Array.isArray(value)) {
+		return undefined;
+	}
+
+	const normalized = value
+		.filter((entry): entry is string => typeof entry === "string")
+		.map((entry) => entry.trim())
+		.filter((entry) => entry.length > 0);
+
+	return normalized.length > 0 ? normalized : undefined;
+}
+
+function normalizeOptionalString(value: unknown): string | undefined {
+	if (typeof value !== "string") {
+		return undefined;
+	}
+	const normalized = value.trim();
+	return normalized.length > 0 ? normalized : undefined;
+}
+
+function normalizeResponseStyle(value: unknown): "short" | "standard" | "empathetic" | "strict" | undefined {
+	if (value !== "short" && value !== "standard" && value !== "empathetic" && value !== "strict") {
+		return undefined;
+	}
+	return value;
 }
 
 /**

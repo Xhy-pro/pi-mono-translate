@@ -72,14 +72,17 @@ import type { BashExecutionMessage, CustomMessage } from "./messages.js";
 import type { ModelRegistry } from "./model-registry.js";
 import { expandPromptTemplate, type PromptTemplate } from "./prompt-templates.js";
 import type { ResourceExtensionPaths, ResourceLoader } from "./resource-loader.js";
+import { evaluateServicePolicy, type ServicePolicyDecision } from "./service-policy.js";
 import type { BranchSummaryEntry, CompactionEntry, SessionManager } from "./session-manager.js";
 import { CURRENT_SESSION_VERSION, getLatestCompactionEntry, type SessionHeader } from "./session-manager.js";
 import type { SettingsManager } from "./settings-manager.js";
+import { routeSkills, type SkillRouteResult } from "./skill-router.js";
+import type { Skill } from "./skills.js";
 import type { SlashCommandInfo } from "./slash-commands.js";
 import { createSyntheticSourceInfo, type SourceInfo } from "./source-info.js";
 import { buildSystemPrompt } from "./system-prompt.js";
 import type { BashOperations } from "./tools/bash.js";
-import { createAllToolDefinitions } from "./tools/index.js";
+import { createAllToolDefinitions, getToolNamesForProfile } from "./tools/index.js";
 import { createToolDefinitionFromAgentTool, wrapToolDefinition } from "./tools/tool-definition-wrapper.js";
 
 // ============================================================================
@@ -176,6 +179,13 @@ export interface PromptOptions {
 	source?: InputSource;
 }
 
+interface PreparedPromptTurn {
+	text: string;
+	selectedSkills: Skill[];
+	route: SkillRouteResult;
+	policyDecision: ServicePolicyDecision;
+}
+
 /** Result from cycleModel() */
 export interface ModelCycleResult {
 	model: Model<any>;
@@ -268,6 +278,7 @@ export class AgentSession {
 	private _customTools: ToolDefinition[];
 	private _baseToolDefinitions: Map<string, ToolDefinition> = new Map();
 	private _cwd: string;
+	private _defaultActiveToolNames: string[] = [];
 	private _extensionRunnerRef?: { current?: ExtensionRunner };
 	private _initialActiveToolNames?: string[];
 	private _baseToolsOverride?: Record<string, AgentTool>;
@@ -311,6 +322,7 @@ export class AgentSession {
 			activeToolNames: this._initialActiveToolNames,
 			includeAllExtensionTools: true,
 		});
+		this._defaultActiveToolNames = this.getActiveToolNames();
 	}
 
 	/** Model registry for API key resolution and model discovery */
@@ -766,6 +778,10 @@ export class AgentSession {
 	 * Changes take effect on the next agent turn.
 	 */
 	setActiveToolsByName(toolNames: string[]): void {
+		this._applyActiveToolsByName(toolNames, true);
+	}
+
+	private _applyActiveToolsByName(toolNames: string[], updateDefault: boolean): void {
 		const tools: AgentTool[] = [];
 		const validToolNames: string[] = [];
 		for (const name of toolNames) {
@@ -780,6 +796,9 @@ export class AgentSession {
 		// Rebuild base system prompt with new tool set
 		this._baseSystemPrompt = this._rebuildSystemPrompt(validToolNames);
 		this.agent.setSystemPrompt(this._baseSystemPrompt);
+		if (updateDefault) {
+			this._defaultActiveToolNames = [...validToolNames];
+		}
 	}
 
 	/** Whether compaction or branch summarization is currently running */
@@ -885,6 +904,7 @@ export class AgentSession {
 
 		return buildSystemPrompt({
 			cwd: this._cwd,
+			profile: this.settingsManager.getServiceMode(),
 			skills: loadedSkills,
 			contextFiles: loadedContextFiles,
 			customPrompt: loaderSystemPrompt,
@@ -939,15 +959,14 @@ export class AgentSession {
 			}
 		}
 
-		// Expand skill commands (/skill:name args) and prompt templates (/template args)
-		let expandedText = currentText;
-		if (expandPromptTemplates) {
-			expandedText = this._expandSkillCommand(expandedText);
-			expandedText = expandPromptTemplate(expandedText, [...this.promptTemplates]);
-		}
+		const preparedTurn = this._preparePromptTurn(currentText, expandPromptTemplates);
+		const expandedText = preparedTurn.text;
 
 		// If streaming, queue via steer() or followUp() based on option
 		if (this.isStreaming) {
+			if (preparedTurn.policyDecision.action !== "continue") {
+				throw new Error(preparedTurn.policyDecision.message ?? "Customer support policy blocked this message.");
+			}
 			if (!options?.streamingBehavior) {
 				throw new Error(
 					"Agent is already processing. Specify streamingBehavior ('steer' or 'followUp') to queue the message.",
@@ -963,6 +982,16 @@ export class AgentSession {
 
 		// Flush any pending bash messages before the new prompt
 		this._flushPendingBashMessages();
+
+		if (preparedTurn.policyDecision.action !== "continue") {
+			await this._emitSyntheticServiceTurn(expandedText, currentImages, preparedTurn.policyDecision.message ?? "");
+			return;
+		}
+
+		if (this._isCustomerSupportMode()) {
+			const activeToolNames = this._resolveCustomerSupportToolNames(preparedTurn.selectedSkills);
+			this._applyActiveToolsByName(activeToolNames, false);
+		}
 
 		// Validate model
 		if (!this.model) {
@@ -1047,6 +1076,167 @@ export class AgentSession {
 		await this.waitForRetry();
 	}
 
+	private _preparePromptTurn(text: string, expandPromptTemplates: boolean): PreparedPromptTurn {
+		const explicitSkill = expandPromptTemplates ? this._findExplicitSkill(text) : undefined;
+		let expandedText = text;
+		if (expandPromptTemplates) {
+			expandedText = this._expandSkillCommand(expandedText);
+			expandedText = expandPromptTemplate(expandedText, [...this.promptTemplates]);
+		}
+
+		if (!this._isCustomerSupportMode()) {
+			return {
+				text: expandedText,
+				selectedSkills: [],
+				route: { action: "answer", skills: [], confidence: 1 },
+				policyDecision: { action: "continue" },
+			};
+		}
+
+		const initialRoute = explicitSkill
+			? ({
+					action: "answer",
+					skills: [explicitSkill],
+					confidence: 1,
+				} satisfies SkillRouteResult)
+			: routeSkills({
+					text: expandedText,
+					skills: this.resourceLoader.getSkills().skills,
+				});
+		const selectedSkillBlocks = initialRoute.skills
+			.map((skill) => {
+				const block = this._tryBuildSkillBlock(skill);
+				return block ? { skill, block } : undefined;
+			})
+			.filter((entry): entry is { skill: Skill; block: string } => entry !== undefined);
+		const selectedSkills = selectedSkillBlocks.map((entry) => entry.skill);
+		const route: SkillRouteResult =
+			selectedSkills.length === initialRoute.skills.length
+				? initialRoute
+				: {
+						action: selectedSkills.length > 0 ? "answer" : "clarify",
+						skills: selectedSkills,
+						confidence: selectedSkills.length > 0 ? initialRoute.confidence : 0,
+						reason: selectedSkills.length > 0 ? initialRoute.reason : "skill_block_unavailable",
+					};
+		const policyDecision = evaluateServicePolicy({
+			route,
+			skillPolicy: this.settingsManager.getSkillPolicy(),
+			handoffPolicy: this.settingsManager.getHandoffPolicy(),
+		});
+
+		if (selectedSkillBlocks.length > 0 && parseSkillBlock(expandedText) === null) {
+			expandedText = `${selectedSkillBlocks.map((entry) => entry.block).join("\n\n")}\n\n${expandedText}`;
+		}
+
+		return {
+			text: expandedText,
+			selectedSkills,
+			route,
+			policyDecision,
+		};
+	}
+
+	private _isCustomerSupportMode(): boolean {
+		return this.settingsManager.getServiceMode() === "customer-support";
+	}
+
+	private _findExplicitSkill(text: string): Skill | undefined {
+		if (!text.startsWith("/skill:")) {
+			return undefined;
+		}
+
+		const spaceIndex = text.indexOf(" ");
+		const skillName = spaceIndex === -1 ? text.slice(7) : text.slice(7, spaceIndex);
+		return this.resourceLoader.getSkills().skills.find((skill) => skill.name === skillName);
+	}
+
+	private _tryBuildSkillBlock(skill: Skill): string | undefined {
+		try {
+			const body = this._readSkillBody(skill);
+			return `<skill name="${skill.name}" location="${skill.filePath}">\nReferences are relative to ${skill.baseDir}.\n\n${body}\n</skill>`;
+		} catch (err) {
+			this._extensionRunner?.emitError({
+				extensionPath: skill.filePath,
+				event: "skill_expansion",
+				error: err instanceof Error ? err.message : String(err),
+			});
+			return undefined;
+		}
+	}
+
+	private _readSkillBody(skill: Skill): string {
+		const content = readFileSync(skill.filePath, "utf-8");
+		return stripFrontmatter(content).trim();
+	}
+
+	private _resolveCustomerSupportToolNames(skills: Skill[]): string[] {
+		const baseToolNames =
+			this._defaultActiveToolNames.length > 0
+				? [...this._defaultActiveToolNames]
+				: getToolNamesForProfile(this.settingsManager.getDefaultToolProfile());
+
+		if (skills.length === 0) {
+			return baseToolNames;
+		}
+
+		const configuredTools = new Set(baseToolNames);
+		const allowedTools = new Set<string>();
+		for (const skill of skills) {
+			for (const toolName of skill.allowedTools ?? []) {
+				if (configuredTools.has(toolName)) {
+					allowedTools.add(toolName);
+				}
+			}
+		}
+
+		return allowedTools.size > 0 ? Array.from(allowedTools) : baseToolNames;
+	}
+
+	private async _emitSyntheticServiceTurn(
+		text: string,
+		images: ImageContent[] | undefined,
+		responseText: string,
+	): Promise<void> {
+		const userContent: (TextContent | ImageContent)[] = [{ type: "text", text }];
+		if (images) {
+			userContent.push(...images);
+		}
+		const userMessage: AgentMessage = {
+			role: "user",
+			content: userContent,
+			timestamp: Date.now(),
+		};
+		const assistantMessage: AssistantMessage = {
+			role: "assistant",
+			content: [{ type: "text", text: responseText }],
+			api: this.model?.api ?? "anthropic-messages",
+			provider: this.model?.provider ?? "service-policy",
+			model: this.model?.id ?? "service-policy",
+			usage: {
+				input: 0,
+				output: 0,
+				cacheRead: 0,
+				cacheWrite: 0,
+				totalTokens: 0,
+				cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 },
+			},
+			stopReason: "stop",
+			timestamp: Date.now(),
+		};
+		const nextMessages = [...this.messages, userMessage, assistantMessage];
+		this.agent.replaceMessages(nextMessages);
+		this._handleAgentEvent({ type: "agent_start" });
+		this._handleAgentEvent({ type: "turn_start" });
+		this._handleAgentEvent({ type: "message_start", message: userMessage });
+		this._handleAgentEvent({ type: "message_end", message: userMessage });
+		this._handleAgentEvent({ type: "message_start", message: assistantMessage });
+		this._handleAgentEvent({ type: "message_end", message: assistantMessage });
+		this._handleAgentEvent({ type: "turn_end", message: assistantMessage, toolResults: [] });
+		this._handleAgentEvent({ type: "agent_end", messages: nextMessages });
+		await this._agentEventQueue;
+	}
+
 	/**
 	 * Try to execute an extension command. Returns true if command was found and executed.
 	 */
@@ -1093,20 +1283,9 @@ export class AgentSession {
 		const skill = this.resourceLoader.getSkills().skills.find((s) => s.name === skillName);
 		if (!skill) return text; // Unknown skill, pass through
 
-		try {
-			const content = readFileSync(skill.filePath, "utf-8");
-			const body = stripFrontmatter(content).trim();
-			const skillBlock = `<skill name="${skill.name}" location="${skill.filePath}">\nReferences are relative to ${skill.baseDir}.\n\n${body}\n</skill>`;
-			return args ? `${skillBlock}\n\n${args}` : skillBlock;
-		} catch (err) {
-			// Emit error like extension commands do
-			this._extensionRunner?.emitError({
-				extensionPath: skill.filePath,
-				event: "skill_expansion",
-				error: err instanceof Error ? err.message : String(err),
-			});
-			return text; // Return original on error
-		}
+		const skillBlock = this._tryBuildSkillBlock(skill);
+		if (!skillBlock) return text;
+		return args ? `${skillBlock}\n\n${args}` : skillBlock;
 	}
 
 	/**
@@ -1123,11 +1302,12 @@ export class AgentSession {
 			this._throwIfExtensionCommand(text);
 		}
 
-		// Expand skill commands and prompt templates
-		let expandedText = this._expandSkillCommand(text);
-		expandedText = expandPromptTemplate(expandedText, [...this.promptTemplates]);
+		const preparedTurn = this._preparePromptTurn(text, true);
+		if (preparedTurn.policyDecision.action !== "continue") {
+			throw new Error(preparedTurn.policyDecision.message ?? "Customer support policy blocked this message.");
+		}
 
-		await this._queueSteer(expandedText, images);
+		await this._queueSteer(preparedTurn.text, images);
 	}
 
 	/**
@@ -1143,11 +1323,12 @@ export class AgentSession {
 			this._throwIfExtensionCommand(text);
 		}
 
-		// Expand skill commands and prompt templates
-		let expandedText = this._expandSkillCommand(text);
-		expandedText = expandPromptTemplate(expandedText, [...this.promptTemplates]);
+		const preparedTurn = this._preparePromptTurn(text, true);
+		if (preparedTurn.policyDecision.action !== "continue") {
+			throw new Error(preparedTurn.policyDecision.message ?? "Customer support policy blocked this message.");
+		}
 
-		await this._queueFollowUp(expandedText, images);
+		await this._queueFollowUp(preparedTurn.text, images);
 	}
 
 	/**
@@ -2382,7 +2563,7 @@ export class AgentSession {
 
 		const defaultActiveToolNames = this._baseToolsOverride
 			? Object.keys(this._baseToolsOverride)
-			: ["read", "bash", "edit", "write"];
+			: getToolNamesForProfile(this.settingsManager.getDefaultToolProfile());
 		const baseActiveToolNames = options.activeToolNames ?? defaultActiveToolNames;
 		this._refreshToolRegistry({
 			activeToolNames: baseActiveToolNames,
@@ -2401,6 +2582,7 @@ export class AgentSession {
 			flagValues: previousFlagValues,
 			includeAllExtensionTools: true,
 		});
+		this._defaultActiveToolNames = this.getActiveToolNames();
 
 		const hasBindings =
 			this._extensionUIContext ||
