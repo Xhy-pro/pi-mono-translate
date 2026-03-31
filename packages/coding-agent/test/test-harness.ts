@@ -28,11 +28,12 @@ import type {
 import { createAssistantMessageEventStream } from "@mariozechner/pi-ai";
 import { AgentSession, type AgentSessionEvent } from "../src/core/agent-session.js";
 import { AuthStorage } from "../src/core/auth-storage.js";
+import type { CustomerContextResolver } from "../src/core/customer-context.js";
 import { ModelRegistry } from "../src/core/model-registry.js";
 import { SessionManager } from "../src/core/session-manager.js";
 import type { Settings } from "../src/core/settings-manager.js";
 import { SettingsManager } from "../src/core/settings-manager.js";
-import type { ExtensionFactory, ResourceLoader } from "../src/index.js";
+import type { ExtensionFactory, ResourceLoader, ToolDefinition } from "../src/index.js";
 import {
 	type CreateTestExtensionsResultInput,
 	createTestExtensionsResult,
@@ -334,6 +335,10 @@ export interface HarnessOptions {
 	baseToolsOverride?: Record<string, AgentTool>;
 	/** Optional resource loader override. */
 	resourceLoader?: ResourceLoader;
+	/** Custom tool definitions to register on the session. */
+	customTools?: Array<ToolDefinition<any, any>>;
+	/** Optional customer support context resolver. */
+	customerContextResolver?: CustomerContextResolver;
 	/** Inline extensions to load into the session resource loader. */
 	extensionFactories?: Array<ExtensionFactory | CreateTestExtensionsResultInput>;
 }
@@ -400,6 +405,8 @@ function createHarnessWithResourceLoader(
 		modelRegistry,
 		resourceLoader,
 		baseToolsOverride: options.baseToolsOverride,
+		customTools: options.customTools,
+		customerContextResolver: options.customerContextResolver,
 	});
 
 	const events: AgentSessionEvent[] = [];

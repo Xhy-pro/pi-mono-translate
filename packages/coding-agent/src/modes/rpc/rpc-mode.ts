@@ -520,6 +520,11 @@ export async function runRpcMode(session: AgentSession): Promise<never> {
 				return success(id, "get_last_assistant_text", { text });
 			}
 
+			case "get_last_customer_support_response": {
+				const response = session.getLastCustomerSupportResponse() ?? null;
+				return success(id, "get_last_customer_support_response", { response });
+			}
+
 			case "set_session_name": {
 				const name = command.name.trim();
 				if (!name) {

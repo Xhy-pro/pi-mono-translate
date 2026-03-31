@@ -7,9 +7,10 @@
 
 import type { AgentMessage, ThinkingLevel } from "@mariozechner/pi-agent-core";
 import type { ImageContent, Model } from "@mariozechner/pi-ai";
-import type { SessionStats } from "../../core/agent-session.js";
+import type { AgentSessionEvent, SessionStats } from "../../core/agent-session.js";
 import type { BashResult } from "../../core/bash-executor.js";
 import type { CompactionResult } from "../../core/compaction/index.js";
+import type { CustomerSupportResponse } from "../../core/customer-support-response.js";
 import type { SourceInfo } from "../../core/source-info.js";
 
 // ============================================================================
@@ -59,6 +60,7 @@ export type RpcCommand =
 	| { id?: string; type: "fork"; entryId: string }
 	| { id?: string; type: "get_fork_messages" }
 	| { id?: string; type: "get_last_assistant_text" }
+	| { id?: string; type: "get_last_customer_support_response" }
 	| { id?: string; type: "set_session_name"; name: string }
 
 	// Messages
@@ -186,6 +188,13 @@ export type RpcResponse =
 			success: true;
 			data: { text: string | null };
 	  }
+	| {
+			id?: string;
+			type: "response";
+			command: "get_last_customer_support_response";
+			success: true;
+			data: { response: CustomerSupportResponse | null };
+	  }
 	| { id?: string; type: "response"; command: "set_session_name"; success: true }
 
 	// Messages
@@ -260,3 +269,7 @@ export type RpcExtensionUIResponse =
 // ============================================================================
 
 export type RpcCommandType = RpcCommand["type"];
+
+export type RpcStreamEvent =
+	| AgentSessionEvent
+	| { type: "extension_error"; extensionPath: string; event: string; error: string };

@@ -26,6 +26,8 @@ import {
 	createLsTool,
 	createReadOnlyTools,
 	createReadTool,
+	createServiceTool,
+	createServiceToolDefinition,
 	createServiceTools,
 	createWriteTool,
 	editTool,
@@ -63,7 +65,7 @@ export interface CreateAgentSessionOptions {
 	/** Built-in tools to use. Default: codingTools [read, bash, edit, write] */
 	tools?: Tool[];
 	/** Custom tools to register (in addition to built-in tools). */
-	customTools?: ToolDefinition[];
+	customTools?: Array<ToolDefinition<any, any>>;
 
 	/** Resource loader. When omitted, DefaultResourceLoader is used. */
 	resourceLoader?: ResourceLoader;
@@ -118,6 +120,8 @@ export {
 	createCodingTools,
 	createReadOnlyTools,
 	createServiceTools,
+	createServiceTool,
+	createServiceToolDefinition,
 	createReadTool,
 	createBashTool,
 	createEditTool,

@@ -46,6 +46,18 @@ export {
 	serializeConversation,
 	shouldCompact,
 } from "./core/compaction/index.js";
+export type {
+	CustomerContext,
+	CustomerContextEnvelope,
+	CustomerContextOrder,
+	CustomerContextResolver,
+	CustomerContextTicket,
+	CustomerContextType,
+	ResolveCustomerContextOptions,
+} from "./core/customer-context.js";
+export { formatCustomerContextEnvelope, hasCustomerContextData } from "./core/customer-context.js";
+export type { CustomerSupportResponse } from "./core/customer-support-response.js";
+export { buildCustomerSupportResponse } from "./core/customer-support-response.js";
 export { createEventBus, type EventBus, type EventBusController } from "./core/event-bus.js";
 // Extension system
 export type {
@@ -142,6 +154,8 @@ export {
 } from "./core/extensions/index.js";
 // Footer data provider (git branch + extension statuses - data not otherwise available to extensions)
 export type { ReadonlyFooterDataProvider } from "./core/footer-data-provider.js";
+export type { EvaluateHandoffOptions, HandoffDecision } from "./core/handoff-policy.js";
+export { evaluateHandoffPolicy } from "./core/handoff-policy.js";
 export { convertToLlm } from "./core/messages.js";
 export { ModelRegistry } from "./core/model-registry.js";
 export type {
@@ -226,6 +240,7 @@ export {
 	type BashToolOptions,
 	bashTool,
 	bashToolDefinition,
+	type CreateServiceToolDefinitionOptions,
 	codingTools,
 	createBashToolDefinition,
 	createEditToolDefinition,
@@ -234,6 +249,9 @@ export {
 	createLocalBashOperations,
 	createLsToolDefinition,
 	createReadToolDefinition,
+	createServiceTool,
+	createServiceToolDefinition,
+	createServiceToolResult,
 	createWriteToolDefinition,
 	DEFAULT_MAX_BYTES,
 	DEFAULT_MAX_LINES,
@@ -256,6 +274,7 @@ export {
 	type GrepToolOptions,
 	grepTool,
 	grepToolDefinition,
+	isServiceToolResult,
 	type LsOperations,
 	type LsToolDetails,
 	type LsToolInput,
@@ -268,6 +287,7 @@ export {
 	type ReadToolOptions,
 	readTool,
 	readToolDefinition,
+	type ServiceToolResult,
 	type ToolsOptions,
 	type TruncationOptions,
 	type TruncationResult,

@@ -63,6 +63,16 @@ export {
 	readToolDefinition,
 } from "./read.js";
 export {
+	type CreateServiceToolDefinitionOptions,
+	createServiceTool,
+	createServiceToolDefinition,
+} from "./service/service-tool.js";
+export {
+	createServiceToolResult,
+	isServiceToolResult,
+	type ServiceToolResult,
+} from "./service/service-tool-result.js";
+export {
 	DEFAULT_MAX_BYTES,
 	DEFAULT_MAX_LINES,
 	formatSize,

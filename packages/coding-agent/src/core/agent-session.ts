@@ -23,7 +23,14 @@ import type {
 	AgentTool,
 	ThinkingLevel,
 } from "@mariozechner/pi-agent-core";
-import type { AssistantMessage, ImageContent, Message, Model, TextContent } from "@mariozechner/pi-ai";
+import type {
+	AssistantMessage,
+	ImageContent,
+	Message,
+	Model,
+	TextContent,
+	ToolResultMessage,
+} from "@mariozechner/pi-ai";
 import { isContextOverflow, modelsAreEqual, resetApiProviders, supportsXhigh } from "@mariozechner/pi-ai";
 import { getDocsPath } from "../config.js";
 import { theme } from "../modes/interactive/theme/theme.js";
@@ -40,6 +47,13 @@ import {
 	prepareCompaction,
 	shouldCompact,
 } from "./compaction/index.js";
+import {
+	type CustomerContextEnvelope,
+	type CustomerContextResolver,
+	formatCustomerContextEnvelope,
+	hasCustomerContextData,
+} from "./customer-context.js";
+import { buildCustomerSupportResponse, type CustomerSupportResponse } from "./customer-support-response.js";
 import { DEFAULT_THINKING_LEVEL } from "./defaults.js";
 import { exportSessionToHtml, type ToolHtmlRenderer } from "./export-html/index.js";
 import { createToolHtmlRenderer } from "./export-html/tool-renderer.js";
@@ -68,6 +82,7 @@ import {
 	type TurnStartEvent,
 	wrapRegisteredTools,
 } from "./extensions/index.js";
+import { evaluateHandoffPolicy } from "./handoff-policy.js";
 import type { BashExecutionMessage, CustomMessage } from "./messages.js";
 import type { ModelRegistry } from "./model-registry.js";
 import { expandPromptTemplate, type PromptTemplate } from "./prompt-templates.js";
@@ -115,6 +130,7 @@ export function parseSkillBlock(text: string): ParsedSkillBlock | null {
 /** Session-specific events that extend the core AgentEvent */
 export type AgentSessionEvent =
 	| AgentEvent
+	| { type: "customer_support_response"; response: CustomerSupportResponse }
 	| { type: "compaction_start"; reason: "manual" | "threshold" | "overflow" }
 	| {
 			type: "compaction_end";
@@ -144,7 +160,9 @@ export interface AgentSessionConfig {
 	/** Resource loader for skills, prompts, themes, context files, system prompt */
 	resourceLoader: ResourceLoader;
 	/** SDK custom tools registered outside extensions */
-	customTools?: ToolDefinition[];
+	customTools?: Array<ToolDefinition<any, any>>;
+	/** Optional resolver for injecting hidden customer context into customer-support turns */
+	customerContextResolver?: CustomerContextResolver;
 	/** Model registry for API key resolution and model discovery */
 	modelRegistry: ModelRegistry;
 	/** Initial active built-in tool names. Default: [read, bash, edit, write] */
@@ -184,6 +202,14 @@ interface PreparedPromptTurn {
 	selectedSkills: Skill[];
 	route: SkillRouteResult;
 	policyDecision: ServicePolicyDecision;
+}
+
+interface CustomerSupportTurnMetadata {
+	route: SkillRouteResult;
+	selectedSkills: Skill[];
+	policyDecision: ServicePolicyDecision;
+	contextEnvelopes: CustomerContextEnvelope[];
+	toolResults: ToolResultMessage[];
 }
 
 /** Result from cycleModel() */
@@ -251,6 +277,12 @@ export class AgentSession {
 	private _followUpMessages: string[] = [];
 	/** Messages queued to be included with the next user prompt as context ("asides"). */
 	private _pendingNextTurnMessages: CustomMessage[] = [];
+	private _pendingImmediateCustomerSupportTurns: CustomerSupportTurnMetadata[] = [];
+	private _pendingSteeringCustomerSupportTurns: CustomerSupportTurnMetadata[] = [];
+	private _pendingFollowUpCustomerSupportTurns: CustomerSupportTurnMetadata[] = [];
+	private _activeCustomerSupportTurn: CustomerSupportTurnMetadata | undefined = undefined;
+	private _lastCustomerSupportResponse: CustomerSupportResponse | undefined = undefined;
+	private _customerSupportResponseHistory: CustomerSupportResponse[] = [];
 
 	// Compaction state
 	private _compactionAbortController: AbortController | undefined = undefined;
@@ -275,7 +307,8 @@ export class AgentSession {
 	private _turnIndex = 0;
 
 	private _resourceLoader: ResourceLoader;
-	private _customTools: ToolDefinition[];
+	private _customTools: Array<ToolDefinition<any, any>>;
+	private _customerContextResolver?: CustomerContextResolver;
 	private _baseToolDefinitions: Map<string, ToolDefinition> = new Map();
 	private _cwd: string;
 	private _defaultActiveToolNames: string[] = [];
@@ -307,6 +340,7 @@ export class AgentSession {
 		this._scopedModels = config.scopedModels ?? [];
 		this._resourceLoader = config.resourceLoader;
 		this._customTools = config.customTools ?? [];
+		this._customerContextResolver = config.customerContextResolver;
 		this._cwd = config.cwd;
 		this._modelRegistry = config.modelRegistry;
 		this._extensionRunnerRef = config.extensionRunnerRef;
@@ -483,19 +517,26 @@ export class AgentSession {
 		if (event.type === "message_start" && event.message.role === "user") {
 			this._overflowRecoveryAttempted = false;
 			const messageText = this._getUserMessageText(event.message);
+			let activeCustomerSupportTurn: CustomerSupportTurnMetadata | undefined;
 			if (messageText) {
 				// Check steering queue first
 				const steeringIndex = this._steeringMessages.indexOf(messageText);
 				if (steeringIndex !== -1) {
 					this._steeringMessages.splice(steeringIndex, 1);
+					activeCustomerSupportTurn = this._removeQueuedCustomerSupportTurn("steer", steeringIndex);
 				} else {
 					// Check follow-up queue
 					const followUpIndex = this._followUpMessages.indexOf(messageText);
 					if (followUpIndex !== -1) {
 						this._followUpMessages.splice(followUpIndex, 1);
+						activeCustomerSupportTurn = this._removeQueuedCustomerSupportTurn("followUp", followUpIndex);
 					}
 				}
 			}
+			if (!activeCustomerSupportTurn && this._pendingImmediateCustomerSupportTurns.length > 0) {
+				activeCustomerSupportTurn = this._pendingImmediateCustomerSupportTurns.shift();
+			}
+			this._activeCustomerSupportTurn = activeCustomerSupportTurn;
 		}
 
 		// Emit to extensions first
@@ -561,6 +602,43 @@ export class AgentSession {
 			this._resolveRetry();
 			await this._checkCompaction(msg);
 		}
+
+		if (event.type === "turn_end" && event.message.role === "assistant") {
+			const assistantMessage = event.message as AssistantMessage;
+			const awaitingRetry =
+				assistantMessage.stopReason === "error" &&
+				this.settingsManager.getRetryEnabled() &&
+				this._isRetryableError(assistantMessage);
+			if (this._activeCustomerSupportTurn && assistantMessage.stopReason !== "toolUse" && !awaitingRetry) {
+				const response = buildCustomerSupportResponse({
+					assistantMessage,
+					route: this._activeCustomerSupportTurn.route,
+					selectedSkills: this._activeCustomerSupportTurn.selectedSkills,
+					contextEnvelopes: this._activeCustomerSupportTurn.contextEnvelopes,
+					policyDecision: this._activeCustomerSupportTurn.policyDecision,
+					toolResults: [...this._activeCustomerSupportTurn.toolResults, ...event.toolResults],
+				});
+				this._recordCustomerSupportResponse(response);
+				this._activeCustomerSupportTurn = undefined;
+				this._emit({ type: "customer_support_response", response });
+			}
+		}
+
+		if (event.type === "message_end" && event.message.role === "toolResult" && this._activeCustomerSupportTurn) {
+			this._activeCustomerSupportTurn.toolResults.push(event.message as ToolResultMessage);
+		}
+	}
+
+	private _removeQueuedCustomerSupportTurn(
+		mode: "steer" | "followUp",
+		index: number,
+	): CustomerSupportTurnMetadata | undefined {
+		const queue =
+			mode === "steer" ? this._pendingSteeringCustomerSupportTurns : this._pendingFollowUpCustomerSupportTurns;
+		if (index < 0 || index >= queue.length) {
+			return undefined;
+		}
+		return queue.splice(index, 1)[0];
 	}
 
 	/** Resolve the pending retry promise */
@@ -855,6 +933,14 @@ export class AgentSession {
 		return this._resourceLoader.getPrompts().prompts;
 	}
 
+	get customerContextResolver(): CustomerContextResolver | undefined {
+		return this._customerContextResolver;
+	}
+
+	setCustomerContextResolver(resolver: CustomerContextResolver | undefined): void {
+		this._customerContextResolver = resolver;
+	}
+
 	private _normalizePromptSnippet(text: string | undefined): string | undefined {
 		if (!text) return undefined;
 		const oneLine = text
@@ -961,20 +1047,33 @@ export class AgentSession {
 
 		const preparedTurn = this._preparePromptTurn(currentText, expandPromptTemplates);
 		const expandedText = preparedTurn.text;
+		this._lastCustomerSupportResponse = undefined;
 
 		// If streaming, queue via steer() or followUp() based on option
 		if (this.isStreaming) {
 			if (preparedTurn.policyDecision.action !== "continue") {
 				throw new Error(preparedTurn.policyDecision.message ?? "Customer support policy blocked this message.");
 			}
+			const customerContextMessages = await this._buildCustomerContextMessages(currentText, preparedTurn);
+			const queuedTurnMetadata: CustomerSupportTurnMetadata = {
+				route: preparedTurn.route,
+				selectedSkills: preparedTurn.selectedSkills,
+				policyDecision: preparedTurn.policyDecision,
+				contextEnvelopes: this._extractCustomerContextEnvelopes(customerContextMessages),
+				toolResults: [],
+			};
 			if (!options?.streamingBehavior) {
 				throw new Error(
 					"Agent is already processing. Specify streamingBehavior ('steer' or 'followUp') to queue the message.",
 				);
 			}
 			if (options.streamingBehavior === "followUp") {
+				this._pendingFollowUpCustomerSupportTurns.push(queuedTurnMetadata);
+				this._queueInjectedMessages(customerContextMessages, "followUp");
 				await this._queueFollowUp(expandedText, currentImages);
 			} else {
+				this._pendingSteeringCustomerSupportTurns.push(queuedTurnMetadata);
+				this._queueInjectedMessages(customerContextMessages, "steer");
 				await this._queueSteer(expandedText, currentImages);
 			}
 			return;
@@ -984,6 +1083,13 @@ export class AgentSession {
 		this._flushPendingBashMessages();
 
 		if (preparedTurn.policyDecision.action !== "continue") {
+			this._pendingImmediateCustomerSupportTurns.push({
+				route: preparedTurn.route,
+				selectedSkills: preparedTurn.selectedSkills,
+				policyDecision: preparedTurn.policyDecision,
+				contextEnvelopes: [],
+				toolResults: [],
+			});
 			await this._emitSyntheticServiceTurn(expandedText, currentImages, preparedTurn.policyDecision.message ?? "");
 			return;
 		}
@@ -1023,8 +1129,17 @@ export class AgentSession {
 			await this._checkCompaction(lastAssistant, false);
 		}
 
+		const customerContextMessages = await this._buildCustomerContextMessages(currentText, preparedTurn);
+		this._pendingImmediateCustomerSupportTurns.push({
+			route: preparedTurn.route,
+			selectedSkills: preparedTurn.selectedSkills,
+			policyDecision: preparedTurn.policyDecision,
+			contextEnvelopes: this._extractCustomerContextEnvelopes(customerContextMessages),
+			toolResults: [],
+		});
+
 		// Build messages array (custom message if any, then user message)
-		const messages: AgentMessage[] = [];
+		const messages: AgentMessage[] = [...customerContextMessages];
 
 		// Add user message
 		const userContent: (TextContent | ImageContent)[] = [{ type: "text", text: expandedText }];
@@ -1074,6 +1189,54 @@ export class AgentSession {
 
 		await this.agent.prompt(messages);
 		await this.waitForRetry();
+		await this._agentEventQueue;
+	}
+
+	private async _buildCustomerContextMessages(
+		userInput: string,
+		preparedTurn: PreparedPromptTurn,
+	): Promise<Array<CustomMessage<CustomerContextEnvelope>>> {
+		if (
+			!this._customerContextResolver ||
+			!this._isCustomerSupportMode() ||
+			preparedTurn.policyDecision.action !== "continue" ||
+			preparedTurn.selectedSkills.length === 0
+		) {
+			return [];
+		}
+
+		try {
+			const envelopes = await this._customerContextResolver({
+				sessionId: this.sessionId,
+				cwd: this._cwd,
+				userInput,
+				expandedUserInput: preparedTurn.text,
+				selectedSkills: preparedTurn.selectedSkills,
+				route: preparedTurn.route,
+				activeToolNames: this.getActiveToolNames(),
+			});
+			if (!envelopes || envelopes.length === 0) {
+				return [];
+			}
+
+			return envelopes
+				.filter((envelope) => hasCustomerContextData(envelope.context))
+				.map((envelope) => ({
+					role: "custom" as const,
+					customType: envelope.customType ?? "customer_context",
+					content: formatCustomerContextEnvelope(envelope),
+					display: envelope.visibleToUser ?? false,
+					details: envelope,
+					timestamp: Date.now(),
+				}));
+		} catch (err) {
+			this._extensionRunner?.emitError({
+				extensionPath: "<customer-context>",
+				event: "customer_context",
+				error: err instanceof Error ? err.message : String(err),
+			});
+			return [];
+		}
 	}
 
 	private _preparePromptTurn(text: string, expandPromptTemplates: boolean): PreparedPromptTurn {
@@ -1119,11 +1282,25 @@ export class AgentSession {
 						confidence: selectedSkills.length > 0 ? initialRoute.confidence : 0,
 						reason: selectedSkills.length > 0 ? initialRoute.reason : "skill_block_unavailable",
 					};
-		const policyDecision = evaluateServicePolicy({
+		const routeableUserInput = explicitSkill ? (parseSkillBlock(expandedText)?.userMessage ?? text) : expandedText;
+		const basePolicyDecision = evaluateServicePolicy({
 			route,
 			skillPolicy: this.settingsManager.getSkillPolicy(),
-			handoffPolicy: this.settingsManager.getHandoffPolicy(),
 		});
+		const handoffDecision = evaluateHandoffPolicy({
+			route,
+			selectedSkills,
+			handoffPolicy: this.settingsManager.getHandoffPolicy(),
+			userInput: routeableUserInput,
+			repeatedClarifyCount: this._getConsecutiveCustomerSupportClarifyCount(),
+		});
+		const policyDecision: ServicePolicyDecision = handoffDecision.handoff
+			? {
+					action: "handoff",
+					reason: handoffDecision.reason,
+					message: handoffDecision.message,
+				}
+			: basePolicyDecision;
 
 		if (selectedSkillBlocks.length > 0 && parseSkillBlock(expandedText) === null) {
 			expandedText = `${selectedSkillBlocks.map((entry) => entry.block).join("\n\n")}\n\n${expandedText}`;
@@ -1180,7 +1357,7 @@ export class AgentSession {
 			return baseToolNames;
 		}
 
-		const configuredTools = new Set(baseToolNames);
+		const configuredTools = new Set([...baseToolNames, ...this._toolDefinitions.keys()]);
 		const allowedTools = new Set<string>();
 		for (const skill of skills) {
 			for (const toolName of skill.allowedTools ?? []) {
@@ -1306,6 +1483,15 @@ export class AgentSession {
 		if (preparedTurn.policyDecision.action !== "continue") {
 			throw new Error(preparedTurn.policyDecision.message ?? "Customer support policy blocked this message.");
 		}
+		const customerContextMessages = await this._buildCustomerContextMessages(text, preparedTurn);
+		this._pendingSteeringCustomerSupportTurns.push({
+			route: preparedTurn.route,
+			selectedSkills: preparedTurn.selectedSkills,
+			policyDecision: preparedTurn.policyDecision,
+			contextEnvelopes: this._extractCustomerContextEnvelopes(customerContextMessages),
+			toolResults: [],
+		});
+		this._queueInjectedMessages(customerContextMessages, "steer");
 
 		await this._queueSteer(preparedTurn.text, images);
 	}
@@ -1327,6 +1513,15 @@ export class AgentSession {
 		if (preparedTurn.policyDecision.action !== "continue") {
 			throw new Error(preparedTurn.policyDecision.message ?? "Customer support policy blocked this message.");
 		}
+		const customerContextMessages = await this._buildCustomerContextMessages(text, preparedTurn);
+		this._pendingFollowUpCustomerSupportTurns.push({
+			route: preparedTurn.route,
+			selectedSkills: preparedTurn.selectedSkills,
+			policyDecision: preparedTurn.policyDecision,
+			contextEnvelopes: this._extractCustomerContextEnvelopes(customerContextMessages),
+			toolResults: [],
+		});
+		this._queueInjectedMessages(customerContextMessages, "followUp");
 
 		await this._queueFollowUp(preparedTurn.text, images);
 	}
@@ -1361,6 +1556,27 @@ export class AgentSession {
 			content,
 			timestamp: Date.now(),
 		});
+	}
+
+	private _queueInjectedMessages(
+		messages: Array<CustomMessage<CustomerContextEnvelope>>,
+		mode: "steer" | "followUp",
+	): void {
+		for (const message of messages) {
+			if (mode === "followUp") {
+				this.agent.followUp(message);
+			} else {
+				this.agent.steer(message);
+			}
+		}
+	}
+
+	private _extractCustomerContextEnvelopes(
+		messages: Array<CustomMessage<CustomerContextEnvelope>>,
+	): CustomerContextEnvelope[] {
+		return messages
+			.map((message) => message.details)
+			.filter((details): details is CustomerContextEnvelope => details !== undefined);
 	}
 
 	/**
@@ -1477,6 +1693,8 @@ export class AgentSession {
 		const followUp = [...this._followUpMessages];
 		this._steeringMessages = [];
 		this._followUpMessages = [];
+		this._pendingSteeringCustomerSupportTurns = [];
+		this._pendingFollowUpCustomerSupportTurns = [];
 		this.agent.clearAllQueues();
 		return { steering, followUp };
 	}
@@ -1543,6 +1761,12 @@ export class AgentSession {
 		this._steeringMessages = [];
 		this._followUpMessages = [];
 		this._pendingNextTurnMessages = [];
+		this._pendingImmediateCustomerSupportTurns = [];
+		this._pendingSteeringCustomerSupportTurns = [];
+		this._pendingFollowUpCustomerSupportTurns = [];
+		this._activeCustomerSupportTurn = undefined;
+		this._lastCustomerSupportResponse = undefined;
+		this._customerSupportResponseHistory = [];
 
 		this.sessionManager.appendThinkingLevelChange(this.thinkingLevel);
 
@@ -2478,8 +2702,9 @@ export class AgentSession {
 				.filter((entry): entry is readonly [string, string[]] => entry !== undefined),
 		);
 		const wrappedExtensionTools = this._extensionRunner
-			? wrapRegisteredTools(allCustomTools, this._extensionRunner)
+			? wrapRegisteredTools(registeredTools, this._extensionRunner)
 			: [];
+		const wrappedSdkTools = this._customTools.map((definition) => wrapToolDefinition(definition));
 
 		const toolRegistry = new Map(
 			Array.from(this._baseToolDefinitions.values()).map((definition) => [
@@ -2488,6 +2713,9 @@ export class AgentSession {
 			]),
 		);
 		for (const tool of wrappedExtensionTools as AgentTool[]) {
+			toolRegistry.set(tool.name, tool);
+		}
+		for (const tool of wrappedSdkTools) {
 			toolRegistry.set(tool.name, tool);
 		}
 		this._toolRegistry = toolRegistry;
@@ -2870,6 +3098,12 @@ export class AgentSession {
 		this._steeringMessages = [];
 		this._followUpMessages = [];
 		this._pendingNextTurnMessages = [];
+		this._pendingImmediateCustomerSupportTurns = [];
+		this._pendingSteeringCustomerSupportTurns = [];
+		this._pendingFollowUpCustomerSupportTurns = [];
+		this._activeCustomerSupportTurn = undefined;
+		this._lastCustomerSupportResponse = undefined;
+		this._customerSupportResponseHistory = [];
 
 		// Set new session
 		this.sessionManager.setSessionFile(sessionPath);
@@ -2966,6 +3200,12 @@ export class AgentSession {
 
 		// Clear pending messages (bound to old session state)
 		this._pendingNextTurnMessages = [];
+		this._pendingImmediateCustomerSupportTurns = [];
+		this._pendingSteeringCustomerSupportTurns = [];
+		this._pendingFollowUpCustomerSupportTurns = [];
+		this._activeCustomerSupportTurn = undefined;
+		this._lastCustomerSupportResponse = undefined;
+		this._customerSupportResponseHistory = [];
 
 		if (!selectedEntry.parentId) {
 			this.sessionManager.newSession({ parentSession: previousSessionFile });
@@ -3428,6 +3668,29 @@ export class AgentSession {
 		}
 
 		return text.trim() || undefined;
+	}
+
+	getLastCustomerSupportResponse(): CustomerSupportResponse | undefined {
+		return this._lastCustomerSupportResponse;
+	}
+
+	private _recordCustomerSupportResponse(response: CustomerSupportResponse): void {
+		this._lastCustomerSupportResponse = response;
+		this._customerSupportResponseHistory.push(response);
+		if (this._customerSupportResponseHistory.length > 10) {
+			this._customerSupportResponseHistory.shift();
+		}
+	}
+
+	private _getConsecutiveCustomerSupportClarifyCount(): number {
+		let count = 0;
+		for (let i = this._customerSupportResponseHistory.length - 1; i >= 0; i--) {
+			if (this._customerSupportResponseHistory[i].nextAction !== "clarify") {
+				break;
+			}
+			count++;
+		}
+		return count;
 	}
 
 	// =========================================================================

@@ -15,6 +15,12 @@
 - `P1`：可上线试运行，但缺了会影响准确率、治理或业务接入
 - `P2`：生产化、规模化、运营化增强
 
+## 当前状态
+
+- `P0` 已在 `dev` 分支完成首版落地
+- 当前代码已具备 `serviceMode`、`skillPolicy`、`skill-router`、`service-policy`、客服版 prompt 和 service tool profile
+- `P1` 进入详细设计阶段，详见 `modify/customer-service-p1-plan.md`
+
 ---
 
 ## 2. P0 任务：把系统变成 skill-only 客服模式
@@ -306,6 +312,16 @@ createServiceToolDefinitions(...)
 ---
 
 ## 3. P1 任务：让客服模式真正能回答业务问题
+
+`P1` 的目标不再是“限制模型别乱答”，而是让系统具备真实客服接入能力：
+
+- 能自动获得客户上下文，而不是要求用户每轮重复说明
+- 能调用业务系统工具，而不是继续依赖文件系统工具
+- 能输出前端可直接消费的结构化结果
+- 能在不满足回答条件时稳定转人工
+- 能提供一个可跑通的客服扩展示例，验证整个集成路径
+
+`P1` 的详细设计、接口建议、交付顺序和测试建议见 `modify/customer-service-p1-plan.md`。
 
 ## P1-1 业务上下文注入层
 
